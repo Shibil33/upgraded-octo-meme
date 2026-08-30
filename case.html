@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calibration Copilot — design notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ed:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --pr:'Inter',-apple-system,sans-serif;
+
+  --pg:#F5F5F2; --pg-2:#EDEDEA; --rail:#EFEFEA;
+  --sf:#FFFFFF; --sf-2:#F8F8F6;
+  --tx:#171918; --tx-2:#666A65; --tx-3:#969A94;
+  --bd:#DDDFDA; --bd-2:#ECEDE9;
+  --sys:#60645F; --ok:#52705A;
+  --wn:#98721F; --wn-bg:#FAF6EA; --wn-bd:#E6D9B8; --er:#A45151;
+
+  --e:cubic-bezier(.2,0,0,1); --rw:206px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--pg);color:var(--tx);font-family:var(--ed);overflow:hidden}
+
+.app{position:fixed;inset:0;display:grid;grid-template-columns:var(--rw) 1fr}
+
+/* ══ RAIL ══ */
+.nav{background:var(--rail);border-right:1px solid var(--bd);padding:28px 0 20px;
+  display:flex;flex-direction:column}
+.nav .bd{padding:0 20px 18px;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.nav .bd .t{font-size:13.5px;font-weight:800;letter-spacing:-.02em}
+.nav .bd .s{font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tx-3);margin-top:5px}
+.toc{flex:1;overflow-y:auto;padding:0 9px}
+.toc::-webkit-scrollbar{width:0}
+.toc button{width:100%;display:flex;align-items:center;gap:9px;padding:6.5px 11px;border:0;
+  background:none;color:var(--tx-3);font-family:var(--ed);font-size:12.5px;font-weight:600;
+  text-align:left;cursor:pointer;border-radius:4px;transition:all .14s var(--e)}
+.toc button:hover{color:var(--tx-2);background:var(--pg-2)}
+.toc button .n{font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--tx-3);width:15px;flex:0 0 15px}
+.toc button.done{color:var(--tx-2)}
+.toc button.on{color:var(--tx);background:var(--sf);box-shadow:0 1px 2px rgba(23,25,24,.06)}
+.toc button.on .n{color:var(--tx)}
+.nav .ft{padding:14px 20px 0;border-top:1px solid var(--bd);margin-top:12px}
+.nav .ft a{display:block;font-size:11.5px;font-weight:600;color:var(--tx-2);text-decoration:none;padding:4px 0}
+.nav .ft a:hover{color:var(--tx)}
+.nav .ft .dt{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx-3);margin-top:9px}
+
+/* ══ STAGE ══ */
+.stage{position:relative;overflow:hidden;background:var(--pg)}
+.sl{position:absolute;inset:0;overflow-y:auto;padding:52px 52px 88px;display:none}
+.sl.on{display:block}
+.sl::-webkit-scrollbar{width:0}
+.sl.on .r{animation:up .38s var(--e) backwards}
+.sl.on .r:nth-child(2){animation-delay:.05s}
+.sl.on .r:nth-child(3){animation-delay:.09s}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.w{max-width:1050px}
+.g{display:grid;gap:42px;align-items:start}
+.g-a{grid-template-columns:.8fr 1fr}
+.g-b{grid-template-columns:1.1fr .9fr}
+.g-c{grid-template-columns:.58fr 1fr}
+.g-d{grid-template-columns:1.35fr .65fr}
+
+/* ══ TYPE ══ */
+.sec{font-size:9.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:13px}
+.sec b{color:var(--tx);margin-right:9px}
+h1{font-size:43px;font-weight:800;letter-spacing:-.04em;line-height:1.07}
+h2{font-size:30px;font-weight:800;letter-spacing:-.035em;line-height:1.13;margin-bottom:15px}
+.lede{font-size:16px;font-weight:500;line-height:1.58;color:var(--tx-2)}
+p.b{font-size:14.5px;font-weight:500;line-height:1.7;color:var(--tx-2)}
+p.b+p.b{margin-top:10px}
+p.b b{color:var(--tx);font-weight:700}
+.meta{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--tx-3)}
+.chip{display:inline-block;border:1px solid var(--bd);background:var(--sf);border-radius:3px;
+  padding:4px 9px;font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-2)}
+.note{border-left:2px solid var(--bd);padding-left:16px;margin-top:19px}
+.note .k{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:5px}
+.note p{font-size:14px;font-weight:500;line-height:1.62;color:var(--tx-2)}
+.note p b{color:var(--tx);font-weight:700}
+
+/* ══ SUMMARY — the fast path for a 90-second reader ══ */
+.tldr{border:1px solid var(--bd);background:var(--sf);border-radius:6px;padding:18px 20px;margin-top:22px}
+.tldr .h{font-size:9.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:12px}
+.tldr ol{list-style:none;counter-reset:t}
+.tldr li{counter-increment:t;display:flex;gap:11px;padding:6px 0;font-size:13.5px;
+  font-weight:500;line-height:1.5;color:var(--tx-2)}
+.tldr li:before{content:counter(t,decimal-leading-zero);font-family:var(--pr);font-size:10px;
+  font-weight:700;color:var(--tx-3);padding-top:3px}
+.tldr li b{color:var(--tx);font-weight:700}
+
+/* ══ PINS — anchored to the element, never to fixed pixels ══ */
+.an{position:relative}
+.pin{position:absolute;width:21px;height:21px;border-radius:50%;background:var(--tx);color:var(--sf);
+  font-family:var(--pr);font-size:11px;font-weight:700;display:grid;place-items:center;z-index:4;
+  box-shadow:0 0 0 3px var(--pg),0 1px 4px rgba(23,25,24,.22);cursor:pointer;
+  transition:transform .16s var(--e),background .16s;-webkit-tap-highlight-color:transparent}
+.pin.pR{right:-10px;top:50%;transform:translateY(-50%)}
+.pin.pL{left:-10px;top:50%;transform:translateY(-50%)}
+.pin.pTR{right:-10px;top:12px}
+.pin.pBL{left:-10px;bottom:12px}
+.pin.hot{background:var(--wn)}
+.pin.pR.hot,.pin.pL.hot{transform:translateY(-50%) scale(1.2)}
+.pin.pTR.hot,.pin.pBL.hot{transform:scale(1.2)}
+.cals{margin-top:16px;display:grid;gap:2px}
+.cal{display:flex;gap:11px;align-items:flex-start;cursor:pointer;padding:7px 9px;margin:0 -9px;
+  border-radius:4px;transition:background .16s;-webkit-tap-highlight-color:transparent}
+.cal:hover,.cal.hot{background:var(--pg-2)}
+.cal .cn{width:19px;height:19px;border-radius:50%;border:1px solid var(--bd);background:var(--sf);
+  color:var(--tx-2);font-family:var(--pr);font-size:10.5px;font-weight:700;display:grid;
+  place-items:center;flex:0 0 19px;margin-top:1px;transition:all .16s}
+.cal:hover .cn,.cal.hot .cn{background:var(--wn);border-color:var(--wn);color:var(--sf)}
+.cal p{font-size:13.5px;font-weight:500;line-height:1.55;color:var(--tx-2)}
+.cal p b{color:var(--tx);font-weight:700}
+
+/* ══ PRODUCT ══ */
+.ui{background:var(--sf-2);border:1px solid var(--bd);border-radius:8px;padding:14px;
+  font-family:var(--pr);color:var(--tx);box-shadow:0 8px 24px -12px rgba(23,25,24,.16)}
+.p{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:13px}
+.p+.p{margin-top:8px}
+.k{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tx-3)}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.nm{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.sb{font-size:11px;color:var(--tx-3);margin-top:2px}
+.big{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.big s{display:block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3);margin-top:2px;text-decoration:none}
+.dl{margin-top:11px;padding-top:10px;border-top:1px solid var(--bd-2)}
+.dl div{display:flex;justify-content:space-between;padding:4px 0;font-size:11.5px}
+.dl .dk{color:var(--tx-2)}.dl .dv{font-weight:600;font-variant-numeric:tabular-nums}
+.dl .dv.w{color:var(--wn)}.dl .dv.e{color:var(--er)}.dl .dv.m{color:var(--tx-3);font-weight:500}
+.hist div{display:flex;gap:11px;padding:5px 0;font-size:11.5px;border-bottom:1px solid var(--bd-2)}
+.hist div:last-child{border-bottom:0}
+.hist .d{color:var(--tx-3);font-variant-numeric:tabular-nums;width:44px;flex:0 0 44px;font-weight:500}
+.hist .e{color:var(--tx-2)}
+.q div{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:11.5px;border-bottom:1px solid var(--bd-2)}
+.q div:last-child{border-bottom:0}
+.q .qn{font-weight:600;flex:1}
+.q .qd{color:var(--tx-3);font-variant-numeric:tabular-nums}
+.q .qa{font-variant-numeric:tabular-nums;font-weight:600;width:64px;text-align:right}
+.q .fl{width:5px;height:5px;border-radius:50%;flex:0 0 5px}
+.q .fl.w{background:var(--wn)}.q .fl.e{background:var(--er)}.q .fl.n{background:var(--bd)}
+.q div.cur{background:var(--sf-2);margin:0 -13px;padding-left:13px;padding-right:13px}
+.op{display:flex;align-items:center;gap:9px;padding:8.5px 11px;border:1px solid var(--bd);
+  border-radius:4px;font-size:12px;font-weight:500;background:var(--sf)}
+.op+.op{margin-top:5px}
+.op i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--bd);flex:0 0 12px}
+.op.on{border-color:var(--tx);font-weight:600}.op.on i{border:3.5px solid var(--tx)}
+.cta{width:100%;background:var(--tx);color:var(--sf);border:0;border-radius:4px;padding:9.5px;
+  font-size:12px;font-weight:600;font-family:var(--pr);margin-top:10px}
+.warnline{font-size:10.5px;color:var(--tx-3);line-height:1.45;margin-top:7px;text-align:center}
+.lock{border:1px solid var(--bd);border-radius:6px;padding:20px 16px;text-align:center;background:var(--sf)}
+.lock h4{font-size:12.5px;font-weight:700;margin-bottom:5px}
+.lock p{font-size:11px;line-height:1.5;color:var(--tx-3);max-width:238px;margin:0 auto}
+.rule{width:2px;background:var(--sys);border-radius:1px;flex:0 0 2px;align-self:stretch}
+.sug{display:flex;gap:10px}
+.sug .val{font-size:14.5px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
+.ev{margin-top:11px;padding-top:10px;border-top:1px solid var(--bd-2)}
+.ev div{display:flex;justify-content:space-between;padding:3.5px 0;font-size:11.5px;color:var(--tx-2)}
+.ev .t{color:var(--ok);font-weight:700}
+.pol{background:var(--sf-2);border-radius:4px;padding:9px 10px;margin-top:9px;font-size:11px;
+  color:var(--tx-2);line-height:1.55}
+.pol b{color:var(--tx);font-weight:600}
+.pol .src{color:var(--tx-3);font-size:10px;margin-top:4px}
+.stb{border-radius:4px;padding:9px 10px;margin-top:9px;font-size:11.5px;line-height:1.5}
+.stb.w{background:var(--wn-bg);border:1px solid var(--wn-bd);color:var(--wn)}
+.stb.n{background:var(--sf-2);color:var(--tx-2)}
+.stb b{font-weight:700}
+.b2{background:var(--sf);border:1px solid var(--bd);border-radius:4px;padding:7px 10px;
+  font-size:11.5px;font-weight:600;color:var(--tx);font-family:var(--pr);margin-top:9px;display:inline-block}
+.b2+.b2{margin-left:5px}
+.diff{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);border:1px solid var(--bd);
+  border-radius:4px;overflow:hidden;margin-top:9px}
+.diff>div{background:var(--sf);padding:10px}
+.diff .v{font-size:13px;font-weight:700;margin-top:3px}
+.audit div{display:flex;gap:10px;padding:6px 0;font-size:11.5px;border-bottom:1px solid var(--bd-2)}
+.audit div:last-child{border-bottom:0}
+.audit .tm{color:var(--tx-3);font-variant-numeric:tabular-nums;width:54px;flex:0 0 54px;font-weight:500}
+.audit .ac{color:var(--tx-2)}.audit .ac b{color:var(--tx);font-weight:600}
+.sess div{display:flex;align-items:center;gap:10px;padding:6.5px 0;font-size:11.5px;border-bottom:1px solid var(--bd-2)}
+.sess div:last-child{border-bottom:0}
+.sess .cs{color:var(--tx-3);font-variant-numeric:tabular-nums;width:76px;flex:0 0 76px}
+.sess .rs{flex:1;color:var(--tx-2)}
+.sess .bg{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px}
+.sess .bg.m{background:var(--sf-2);color:var(--tx-3)}
+.sess .bg.d{background:var(--wn-bg);color:var(--wn);border:1px solid var(--wn-bd)}
+
+/* ══ EXPLORATION WIREFRAMES ══ */
+.wfs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.wf{border:1px solid var(--bd);border-radius:5px;padding:11px;background:var(--sf)}
+.wf.dead{opacity:.55}
+.wf.pick{border-color:var(--tx);box-shadow:0 0 0 1px var(--tx)}
+.wf .lt{font-family:var(--pr);font-size:9.5px;font-weight:700;letter-spacing:.13em;
+  color:var(--tx-3);margin-bottom:7px}
+.wf.pick .lt{color:var(--tx)}
+.wf .dg{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.wf .bx{height:9px;border-radius:2px;background:var(--bd-2)}
+.wf .bx.opt{height:14px;background:var(--pg-2)}
+.wf .bx.ai{background:var(--sys);opacity:.85}
+.wf .bx.ai.ghost{background:transparent;border:1px dashed var(--bd)}
+.wf .bx.cm{background:var(--tx);height:11px}
+.wf .ti{font-size:12.5px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+.wf.dead .ti{text-decoration:line-through;text-decoration-thickness:1px}
+.wf .wy{font-size:11.5px;line-height:1.48;color:var(--tx-2);margin-top:5px;font-weight:500}
+
+.flow{font-family:var(--pr);font-size:12px;line-height:1.85;color:var(--tx-2);white-space:pre;overflow-x:auto}
+.flow b{color:var(--tx);font-weight:600}
+.cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+.cmp th{text-align:left;font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--tx-3);padding:0 0 11px;border-bottom:1px solid var(--bd)}
+.cmp td{padding:12px 0;border-bottom:1px solid var(--bd);vertical-align:top}
+.cmp td:first-child{font-weight:700;color:var(--tx);width:24%}
+.cmp td.was{color:var(--tx-3);width:36%;font-weight:500}
+.cmp td.is{color:var(--tx);font-weight:600}
+.open{border-left:2px solid var(--bd);padding-left:17px}
+.open h4{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:5px;letter-spacing:-.01em}
+a.lnk{color:var(--tx);text-decoration:underline;text-underline-offset:3px}
+.cardlink{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--tx);border-radius:5px;
+  padding:10px 15px;text-decoration:none;color:var(--sf);background:var(--tx);font-size:13px;
+  font-weight:700;transition:opacity .16s}
+.cardlink:hover{opacity:.86}
+
+.bar{position:absolute;left:0;right:0;bottom:0;height:62px;display:flex;align-items:center;gap:18px;
+  padding:0 52px;background:linear-gradient(to top,var(--pg) 62%,rgba(245,245,242,0));z-index:20}
+.pips{display:flex;gap:3px;flex:1;max-width:400px}
+.pips i{flex:1;height:2px;background:var(--bd);border-radius:1px;cursor:pointer;transition:background .3s}
+.pips i:hover{background:var(--tx-3)}
+.pips i.dn{background:var(--tx-3)}.pips i.ac{background:var(--tx)}
+.cnt{font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--tx-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.ar{display:flex;gap:6px;margin-left:auto}
+.ar button{width:34px;height:34px;border-radius:5px;border:1px solid var(--bd);background:var(--sf);
+  color:var(--tx-2);cursor:pointer;font-size:13px;font-family:var(--ed)}
+.ar button:hover:not(:disabled){border-color:var(--tx-2);color:var(--tx)}
+.ar button:disabled{opacity:.34;cursor:not-allowed}
+
+@media(max-width:1080px){
+  .app{grid-template-columns:1fr}.nav{display:none}
+  .sl{padding:32px 22px 80px}
+  .g,.g-a,.g-b,.g-c,.g-d{grid-template-columns:1fr;gap:24px}
+  h1{font-size:30px}h2{font-size:23px}.bar{padding:0 22px}
+  .wfs{grid-template-columns:1fr}.flow{font-size:10px}
+}
+@media print{
+  body,html{overflow:visible;height:auto}
+  .app{display:block}.nav,.bar{display:none}
+  .stage{position:static;overflow:visible}
+  .sl{position:static;display:block!important;page-break-after:always;padding:24px;animation:none}
+  .pin{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<div class="app">
+<nav class="nav">
+  <div class="bd"><div class="t">Calibration Copilot</div><div class="s">Design notes</div></div>
+  <div class="toc" id="toc"></div>
+  <div class="ft">
+    <a href="https://shibil33.github.io/upgraded-octo-meme/" target="_blank" rel="noopener">Open the prototype ↗</a>
+    <a href="mailto:ntshibil@gmail.com">ntshibil@gmail.com</a>
+    <div class="dt">August 2026</div>
+  </div>
+</nav>
+<div class="stage">
+
+<!-- 00 OVERVIEW ─ carries the whole argument for a 90-second reader -->
+<section class="sl on" data-t="Overview"><div class="w"><div class="g g-a">
+  <div class="r">
+    <div class="sec">Collections · decision support</div>
+    <h1>Help the agent<br>decide. Don't<br>decide for them.</h1>
+    <p class="lede" style="margin-top:17px;max-width:390px">A recommendation layer for NBFC recovery agents, sequenced so the model is useful without becoming the agent's starting point.</p>
+    <div class="tldr">
+      <div class="h">If you read nothing else</div>
+      <ol>
+        <li><b>The agent commits first.</b> The suggestion is inert until their own call is written and immutable.</li>
+        <li><b>The model can decline.</b> On a thin file it returns nothing and names the three missing fields.</li>
+        <li><b>Disagreement is logged, not corrected.</b> Every divergence becomes an auditable pair with reasons attached.</li>
+      </ol>
+    </div>
+    <div style="margin-top:18px;display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+      <span class="chip">Self-initiated</span><span class="chip">Live prototype</span>
+      <a class="cardlink" href="https://shibil33.github.io/upgraded-octo-meme/" target="_blank" rel="noopener" style="margin-left:4px">Open it ↗</a>
+    </div>
+    <div class="meta" style="margin-top:16px">Shibil Mohammed · August 2026</div>
+  </div>
+  <div class="r">
+    <div class="ui">
+      <div class="an">
+        <div class="p">
+          <div class="hdr">
+            <div><div class="k">Case CG-317082</div><div class="nm">Priya Venkataraman</div>
+              <div class="sb">Revolving Credit · Bucket 2</div></div>
+            <div class="big">₹54,200<s>Overdue</s></div></div>
+          <div class="dl">
+            <div><span class="dk">Days past due</span><span class="dv w">47</span></div>
+            <div><span class="dk">Hardship flag</span><span class="dv w">Job loss · documented</span></div>
+            <div><span class="dk">Last payment</span><span class="dv">₹6,200 · 12 May</span></div>
+            <div><span class="dk">Promises</span><span class="dv e">2 kept · 1 broken</span></div>
+            <div><span class="dk">Active settlement</span><span class="dv m">None</span></div></div>
+        </div>
+        <span class="pin pR" data-c="1">1</span>
+        <span class="pin pBL" data-c="2">2</span>
+      </div>
+      <div class="an">
+        <div class="p"><div class="k" style="margin-bottom:7px">Contact history</div>
+          <div class="hist">
+            <div><span class="d">21 Aug</span><span class="e">Requested EMI restructure. Follow-up Friday.</span></div>
+            <div><span class="d">18 Aug</span><span class="e">No answer</span></div>
+            <div><span class="d">14 Aug</span><span class="e">Cited job loss since March</span></div>
+            <div><span class="d">12 May</span><span class="e">Payment received ₹6,200</span></div></div>
+        </div>
+        <span class="pin pR" data-c="3">3</span>
+      </div>
+    </div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>47 days and a hardship flag pull opposite ways.</b> One says escalate, the other says restructure. This is the judgement the agent is paid for.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>A broken promise sits beside two kept ones. Any tool that reduces this to a score has thrown away the thing that decides the call.</p></div>
+      <div class="cal" data-c="3"><span class="cn">3</span><p>Contact history on the same screen, not behind a tab. The agent has under ninety seconds per case.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 01 THE QUEUE -->
+<section class="sl" data-t="The queue"><div class="w"><div class="g g-b">
+  <div class="r">
+    <div class="sec"><b>01</b>Where the pressure comes from</div>
+    <h2>Forty cases,<br>one shift.</h2>
+    <p class="b">The console isn't opened once. An agent works a queue, and the case screen is one stop inside it. Every design decision downstream has to survive being made <b>forty times before lunch</b>.</p>
+    <p class="b">That's the argument for the whole product. A tool that costs ten extra seconds per case costs seven minutes a shift. A tool that lets an agent skip thinking saves them nothing and costs the company the recovery.</p>
+    <div class="note"><div class="k">Why the queue is slide one</div>
+      <p>Design an AI panel in isolation and you optimise for the demo. Design it as the fourth thing an agent looks at in ninety seconds and you get different answers.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui"><div class="an">
+      <div class="p">
+        <div class="hdr" style="margin-bottom:9px">
+          <div><div class="k">My queue</div><div class="nm" style="font-size:13px">Today · 40 assigned</div></div>
+          <div class="k">14 worked</div></div>
+        <div class="q">
+          <div><span class="fl w"></span><span class="qn">Priya Venkataraman</span><span class="qd">47d</span><span class="qa">₹54,200</span></div>
+          <div class="cur"><span class="fl e"></span><span class="qn">Suresh Iyer</span><span class="qd">38d</span><span class="qa">₹31,400</span></div>
+          <div><span class="fl n"></span><span class="qn">Anand Rao</span><span class="qd">22d</span><span class="qa">₹18,900</span></div>
+          <div><span class="fl w"></span><span class="qn">Meera Shetty</span><span class="qd">61d</span><span class="qa">₹87,300</span></div>
+          <div><span class="fl n"></span><span class="qn">Vikram Joshi</span><span class="qd">19d</span><span class="qa">₹12,050</span></div>
+        </div>
+      </div>
+      <span class="pin pR" data-c="1">1</span>
+      <span class="pin pBL" data-c="2">2</span>
+    </div></div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>14 of 40 worked</b> is the number the agent is actually measured on, so it sits in the header rather than a dashboard.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>Flags are dots, not badges. At forty rows, badges become a wall of colour and stop meaning anything.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 02 THE PROBLEM -->
+<section class="sl" data-t="The problem"><div class="w"><div class="g g-b">
+  <div class="r">
+    <div class="sec"><b>02</b>The problem</div>
+    <h2>The suggestion arrives<br>before the judgement.</h2>
+    <p class="b">Every decision-support tool I looked at puts its recommendation on screen the moment the case opens. The agent reads it before weighing the 47 days, the hardship flag, or the broken promise.</p>
+    <p class="b">From there they aren't deciding what to do. They're deciding whether to <b>disagree</b>, which is a different and much lazier task. At forty cases a shift, nobody disagrees.</p>
+    <div class="note"><div class="k">Anchoring</div>
+      <p>It doesn't feel like influence from the inside. It feels like the tool saving you time.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui">
+      <div class="an">
+        <div class="p" style="border-color:var(--tx)">
+          <div class="sug"><div class="rule" style="background:var(--tx)"></div>
+            <div><div class="k">Suggested action</div><div class="val">Convert to EMI</div></div></div></div>
+        <span class="pin pR" data-c="1">1</span>
+      </div>
+      <div class="an">
+        <div class="p" style="opacity:.4">
+          <div class="k" style="margin-bottom:7px">Your decision</div>
+          <div class="op"><i></i>30-day extension</div><div class="op"><i></i>Convert to EMI</div>
+          <div class="op"><i></i>Single settlement</div><div class="op"><i></i>Escalate to lead</div></div>
+        <span class="pin pL" data-c="2">2</span>
+      </div>
+    </div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>Read first, so it becomes the frame.</b> Everything below is now measured against it rather than against the case.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>The options are still live, but the decision has effectively been made. This is the industry default, not a strawman.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 03 EXPLORATIONS -->
+<section class="sl" data-t="What I tried"><div class="w"><div class="g g-c">
+  <div class="r">
+    <div class="sec"><b>03</b>What I tried</div>
+    <h2>Four ways to<br>sequence it.</h2>
+    <p class="b">The question was never whether to show the model's output. It's <b>when</b>. Three of these fail for the same reason, and the reason isn't obvious until they sit side by side.</p>
+    <div class="note"><div class="k">Reading the sketches</div>
+      <p>Grey blocks are case facts and options. The solid dark bar is the model's suggestion. The black bar is commit.</p></div>
+  </div>
+  <div class="r"><div class="wfs">
+    <div class="wf dead"><div class="lt">A</div>
+      <div class="dg"><div class="bx ai"></div><div class="bx"></div><div class="bx"></div>
+        <div class="bx opt"></div><div class="bx cm"></div></div>
+      <div class="ti">Visible from case open</div>
+      <div class="wy">The anchoring problem, unmodified. What the tools already do.</div></div>
+    <div class="wf dead"><div class="lt">B</div>
+      <div class="dg"><div class="bx"></div><div class="bx"></div><div class="bx ai ghost"></div>
+        <div class="bx opt"></div><div class="bx cm"></div></div>
+      <div class="ti">Collapsed behind a toggle</div>
+      <div class="wy">Still a choice to peek, and under queue pressure everyone peeks. Now it also looks like the agent chose to be anchored.</div></div>
+    <div class="wf dead"><div class="lt">C</div>
+      <div class="dg"><div class="bx"></div><div class="bx"></div><div class="bx opt"></div>
+        <div class="bx ai"></div><div class="bx cm"></div></div>
+      <div class="ti">Revealed on selection</div>
+      <div class="wy">Selection isn't commitment. The agent can still switch before anything is written, so there's no honest record of what they thought first.</div></div>
+    <div class="wf pick"><div class="lt">D · chosen</div>
+      <div class="dg"><div class="bx"></div><div class="bx"></div><div class="bx opt"></div>
+        <div class="bx cm"></div><div class="bx ai"></div></div>
+      <div class="ti">Revealed after commit</div>
+      <div class="wy">The only order where the agent's judgement exists as a fact before the model's does. Everything else follows from this.</div></div>
+  </div></div>
+</div></div></section>
+<!-- 04 MECHANISM -->
+<section class="sl" data-t="Mechanism"><div class="w"><div class="g g-a">
+  <div class="r">
+    <div class="sec"><b>04</b>Mechanism</div>
+    <h2>Commit, then<br>compare.</h2>
+    <p class="b">The agent picks an action and commits. The support panel is inert until they do, and says plainly why rather than just showing a lock.</p>
+    <div class="note"><div class="k">On the commit control</div>
+      <p>This is the highest-consequence button in the product, so the line under it states what commit means: <b>the decision is written before the suggestion appears.</b> A control that changes what you can un-know should say so.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui">
+      <div class="an">
+        <div class="p">
+          <div class="k" style="margin-bottom:8px">Your decision</div>
+          <div class="op"><i></i>30-day extension</div><div class="op on"><i></i>Convert to EMI</div>
+          <div class="op"><i></i>Single settlement</div><div class="op"><i></i>Escalate to lead</div>
+          <button class="cta">Commit decision</button>
+          <div class="warnline">Recorded before the suggestion is shown.<br>Both calls stay in the audit history.</div></div>
+        <span class="pin pR" data-c="1">1</span>
+        <span class="pin pBL" data-c="2">2</span>
+      </div>
+      <div class="an">
+        <div class="lock" style="margin-top:8px">
+          <h4>Decision support locked</h4>
+          <p>Commit your decision to reveal. Your call is logged first so the comparison stays honest, the model can't anchor you, and you can't anchor to it.</p></div>
+        <span class="pin pR" data-c="3">3</span>
+      </div>
+    </div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>Dark, full width, no competing action.</b> Nothing else on the panel can be mistaken for it.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>Two lines of consequence directly beneath. Most products put this in a modal after the click, which is after it matters.</p></div>
+      <div class="cal" data-c="3"><span class="cn">3</span><p>The locked state explains its reasoning rather than asserting a rule. An agent who understands why won't try to route around it.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 05 INSUFFICIENT DATA -->
+<section class="sl" data-t="Insufficient data"><div class="w"><div class="g g-b">
+  <div class="r">
+    <div class="sec"><b>05</b>Insufficient data</div>
+    <h2>The state most<br>tools don't have.</h2>
+    <p class="b">Second case. No contact note, no recorded payment, no promise history. A model that answers anyway is guessing in a confident voice, and the agent can't tell that apart from a good answer.</p>
+    <p class="b">So it returns nothing, itemises what's missing, and routes to a lead. The framing is <b>what the agent can do</b>, not a confidence score they can't act on.</p>
+    <div class="note"><div class="k">Why this matters most</div>
+      <p>A system that is always sure is a system you eventually stop checking. The refusals are what make the answers worth reading.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui">
+      <div class="p"><div class="hdr">
+        <div><div class="k">Case CG-411290</div><div class="nm">Suresh Iyer</div>
+          <div class="sb">Personal Loan · 38 DPD</div></div><div class="big">₹31,400<s>Overdue</s></div></div></div>
+      <div class="an">
+        <div class="p">
+          <div class="sug"><div class="rule"></div>
+            <div><div class="k">Suggested action</div><div class="val" style="color:var(--tx-3)">None</div></div></div>
+          <div class="stb w"><b>Insufficient case data.</b> A reliable suggestion can't be produced from this file.</div>
+          <div class="ev">
+            <div><span>Last contact</span><span style="color:var(--er);font-weight:600">Not recorded</span></div>
+            <div><span>Payment history</span><span style="color:var(--er);font-weight:600">Not recorded</span></div>
+            <div><span>Promise history</span><span style="color:var(--er);font-weight:600">Not recorded</span></div></div>
+          <div class="pol"><b>§3.3, §4.2</b> both require a documented contact event
+            <div class="src">Recovery Policy v3.4 · prototype framework</div></div>
+          <span class="b2">Flag for team lead</span></div>
+        <span class="pin pTR" data-c="1">1</span>
+        <span class="pin pL" data-c="2">2</span>
+        <span class="pin pBL" data-c="3">3</span>
+      </div>
+    </div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>The slot stays and reads None.</b> Hiding the panel would leave the agent wondering whether it failed or was never called.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>Three named gaps, not a percentage. "Confidence 34%" tells an agent nothing they can act on. Three missing fields tells them exactly what to go and get.</p></div>
+      <div class="cal" data-c="3"><span class="cn">3</span><p>Every dead end has one exit. There is no state in this product where the correct move is to stare at the screen.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 06 FAILURE -->
+<section class="sl" data-t="Failure"><div class="w"><div class="g g-a">
+  <div class="r">
+    <div class="sec"><b>06</b>Failure</div>
+    <h2>The model going<br>down is a state,<br>not an exception.</h2>
+    <p class="b">The request fails or returns something unreadable. Most tools show a toast and an empty panel, stranding the agent mid-case with nothing to act on.</p>
+    <p class="b">This says three things: what happened, that <b>the decision stands and is already recorded</b>, and what to use instead.</p>
+    <div class="note"><div class="k">The ordering pays off here</div>
+      <p>Because the human commits first, an outage costs the agent nothing. The work is already done. That isn't error handling, it's a consequence of the sequence.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui"><div class="an">
+      <div class="p">
+        <div class="sug"><div class="rule" style="background:var(--tx-3)"></div>
+          <div><div class="k">Suggested action</div><div class="val" style="color:var(--tx-3)">Unavailable</div></div></div>
+        <div class="stb n">The model couldn't be reached or returned an unreadable response. Your decision stands and is already logged. Use the policy sections below.</div>
+        <div class="pol"><b>§4.2</b> Hardship restructure<br>
+          Eligible when a hardship event is documented, DPD falls between 30 and 90, and no settlement is active.
+          <div class="src">Recovery Policy v3.4 · prototype framework</div></div>
+        <div class="pol"><b>§3.3</b> Extensions</div>
+        <span class="b2">Flag for team lead</span></div>
+      <span class="pin pTR" data-c="1">1</span>
+      <span class="pin pL" data-c="2">2</span>
+    </div></div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>"Your decision stands and is already logged"</b> is the whole message. The agent's first fear is that they've lost the work.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>The policy clauses render in full, with the eligibility test. When the model is gone the interface has to do the model's job.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 07 EVIDENCE -->
+<section class="sl" data-t="Evidence"><div class="w"><div class="g g-a">
+  <div class="r">
+    <div class="sec"><b>07</b>Evidence</div>
+    <h2>Suggestion, then<br>the facts it<br>rests on.</h2>
+    <p class="b">The agent isn't made to read a paragraph to reach the answer. The action comes first, then the case facts that triggered it, then the clause, then the source document.</p>
+    <div class="note"><div class="k">The test I used</div>
+      <p>An agent defends this call to a lead, and eventually to an auditor. <b>Every layer exists because someone downstream asks for it</b>, not because more explanation is friendlier.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui"><div class="an">
+      <div class="p">
+        <div class="sug"><div class="rule"></div>
+          <div><div class="k">Suggested action</div><div class="val">Convert to EMI</div></div></div>
+        <div class="k" style="margin-top:12px">Why this was suggested</div>
+        <div class="ev">
+          <div><span>47 days past due · within 30–90 band</span><span class="t">✓</span></div>
+          <div><span>Hardship flag documented</span><span class="t">✓</span></div>
+          <div><span>Income disruption recorded 14 Aug</span><span class="t">✓</span></div>
+          <div><span>No active settlement plan</span><span class="t">✓</span></div></div>
+        <div class="pol"><b>§4.2</b> Hardship restructure<br>
+          Eligible when a hardship event is documented, DPD falls between 30 and 90, and no settlement is active.
+          <div class="src">Recovery Policy v3.4 · prototype framework</div></div>
+        <div class="stb n">Logged, matched your call · pending policy check</div></div>
+      <span class="pin pTR" data-c="1">1</span>
+      <span class="pin pL" data-c="2">2</span>
+      <span class="pin pR" data-c="3">3</span>
+      <span class="pin pBL" data-c="4">4</span>
+    </div></div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>Answer.</b> Three words. On the fast cases the agent reads this and nothing else.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p><b>Evidence.</b> Four case facts, each checkable against the file. Not prose, a list an auditor can tick.</p></div>
+      <div class="cal" data-c="3"><span class="cn">3</span><p><b>Policy.</b> The clause and its eligibility test, so the agent can confirm the model applied it correctly rather than trust that it did.</p></div>
+      <div class="cal" data-c="4"><span class="cn">4</span><p><b>Provenance.</b> "Pending policy check". The system doesn't claim the call is approved, only that it's recorded and matched.</p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 08 DIFFERENCE -->
+<section class="sl" data-t="Difference"><div class="w"><div class="g g-b">
+  <div class="r">
+    <div class="sec"><b>08</b>Difference</div>
+    <h2>Disagreement is<br>the signal.</h2>
+    <p class="b">When the two calls differ, nothing is corrected and nothing is blocked. The difference is recorded, and the interface states <b>where the two reasonings diverged</b> rather than only flagging that they did.</p>
+    <p class="b">Every disagreement becomes an auditable pair: a human judgement and a machine judgement on the same file, each with a stated reason.</p>
+    <div class="note"><div class="k">What it's for</div>
+      <p>Agreement rate is a vanity metric. The disagreements are where you find out whether the model is wrong, or the policy is.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui">
+      <div class="an">
+        <div class="p">
+          <div class="k">Decision difference</div>
+          <div class="diff">
+            <div><div class="k">Your decision</div><div class="v">Convert to EMI</div></div>
+            <div><div class="k">Suggested action</div><div class="v" style="color:var(--tx-2)">30-day extension</div></div></div>
+          <div class="k" style="margin-top:11px">Where they diverge</div>
+          <div class="stb n" style="margin-top:5px">The model weighted days-past-due above the hardship flag. Your call weighted the documented income disruption above the DPD band.</div>
+          <span class="b2">Review evidence</span><span class="b2">Dispute suggestion</span></div>
+        <span class="pin pTR" data-c="1">1</span>
+        <span class="pin pL" data-c="2">2</span>
+      </div>
+      <div class="an">
+        <div class="p" style="border-color:var(--wn-bd)">
+          <div class="k" style="color:var(--wn)">After dispute</div>
+          <div class="stb w" style="margin-top:5px">Under lead review. Both calls stored; your note will be requested.</div></div>
+        <span class="pin pR" data-c="3">3</span>
+      </div>
+    </div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>Side by side, equal weight, neither styled as correct.</b> Putting the model's call in a highlight box would answer the question this screen is meant to leave open.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>The divergence is explained as <b>what each side weighted</b>. That's the sentence a lead needs; "they disagree" isn't.</p></div>
+      <div class="cal" data-c="3"><span class="cn">3</span><p>Dispute reverses nothing. It routes, stores both, and asks for the agent's note, which is the input the model actually needs.</p></div>
+    </div>
+  </div>
+</div></div></section>
+<!-- 09 RECORD -->
+<section class="sl" data-t="Record"><div class="w"><div class="g g-a">
+  <div class="r">
+    <div class="sec"><b>09</b>Record</div>
+    <h2>The log is a<br>by-product of<br>the sequence.</h2>
+    <p class="b">Collections is regulated. The useful consequence of committing first is that the audit trail falls out of the interaction. There's no separate logging step, because <b>the order of events is the log</b>.</p>
+    <p class="b">The same record rolls up per session, which is what makes the word calibration mean anything: an agent can see their own divergence rate before anyone else does.</p>
+    <div class="note"><div class="k">Where I'd want a lead's input</div>
+      <p>This record is the product's real asset and its real risk. It's a model-improvement loop if a team lead reads it, and performance surveillance if a manager does. That's a policy decision, not a design one, and it has to be settled before this ships.</p></div>
+  </div>
+  <div class="r">
+    <div class="ui">
+      <div class="an">
+        <div class="p">
+          <div class="k" style="margin-bottom:8px">Audit trail · CG-317082</div>
+          <div class="audit">
+            <div><span class="tm">11:42:06</span><span class="ac">Case opened by <b>agent_2841</b></span></div>
+            <div><span class="tm">11:42:51</span><span class="ac">Agent decision <b>Convert to EMI</b></span></div>
+            <div><span class="tm">11:42:51</span><span class="ac">Decision committed · immutable</span></div>
+            <div><span class="tm">11:42:56</span><span class="ac">Suggestion generated <b>30-day extension</b></span></div>
+            <div><span class="tm">11:42:56</span><span class="ac">Difference logged to calibration record</span></div>
+            <div><span class="tm">11:43:19</span><span class="ac">Suggestion disputed by agent</span></div>
+            <div><span class="tm">11:43:19</span><span class="ac">Routed to <b>lead review</b></span></div></div></div>
+        <span class="pin pR" data-c="1">1</span>
+        <span class="pin pL" data-c="2">2</span>
+      </div>
+      <div class="an">
+        <div class="p">
+          <div class="k" style="margin-bottom:8px">Calibration log · this session</div>
+          <div class="sess">
+            <div><span class="cs">CG-317082</span><span class="rs">EMI vs extension</span><span class="bg d">Disputed</span></div>
+            <div><span class="cs">CG-411290</span><span class="rs">No suggestion returned</span><span class="bg m">Lead</span></div>
+            <div><span class="cs">CG-298114</span><span class="rs">Settlement</span><span class="bg m">Matched</span></div>
+            <div><span class="cs">CG-330627</span><span class="rs">Escalate</span><span class="bg m">Matched</span></div>
+          </div>
+          <div class="stb n">4 cases · 2 matched · 1 diverged · 1 no suggestion</div></div>
+        <span class="pin pBL" data-c="3">3</span>
+      </div>
+    </div>
+    <div class="cals">
+      <div class="cal" data-c="1"><span class="cn">1</span><p><b>Five seconds between the human call and the model's.</b> The gap is the whole product, and it's visible in the timestamps.</p></div>
+      <div class="cal" data-c="2"><span class="cn">2</span><p>Marked immutable at the moment of commit. If the record could be edited afterwards, none of the rest of this means anything.</p></div>
+      <div class="cal" data-c="3"><span class="cn">3</span><p>The agent sees their own divergence rate first, in their own session. <b>Whether anyone else sees it is the unresolved question two slides from here.</b></p></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 10 NOT RESOLVED -->
+<section class="sl" data-t="Not resolved"><div class="w" style="max-width:860px">
+  <div class="r"><div class="sec"><b>10</b>Not resolved</div>
+    <h2 style="max-width:580px">Three things I haven't worked out.</h2></div>
+  <div class="r" style="margin-top:24px;display:grid;gap:19px">
+    <div class="open"><h4>Can the agent change their mind after the reveal?</h4>
+      <p class="b">Right now, no. If I allow it, the second decision is contaminated by definition and the calibration record has to store both. If I don't, the tool is telling an agent to ignore information it has just handed them. I don't know which is worse, and I don't think I can know without watching someone use it.</p></div>
+    <div class="open"><h4>Who reads the calibration record?</h4>
+      <p class="b">A lead reading it to find bad policy is a feedback loop. A manager reading it to rank agents is surveillance. Same data, same screen, entirely different product, and agents will work out which one it is inside a week.</p>
+      <p class="b" style="margin-top:8px">I've stamped <b>agent_2841</b> on the audit trail, which quietly leans toward the second reading. I left it because collections records are regulated and have to be attributable, but I'm aware that's a decision I made without deciding it.</p></div>
+    <div class="open"><h4>No recovery agent has used this.</h4>
+      <p class="b">I couldn't get access to one. Everything here rests on published collections process, RBI recovery guidance, and reasoning about how queue work behaves under time pressure. The anchoring effect is well evidenced in the literature; <b>my specific fix for it is untested.</b></p></div>
+  </div>
+</div></section>
+
+<!-- 11 FLOW -->
+<section class="sl" data-t="The flow"><div class="w"><div class="g g-d">
+  <div class="r"><div class="flow"><b>CASE OPEN</b>
+  │   facts · contact history · promise record
+  ▼
+<b>AGENT REVIEWS EVIDENCE</b>
+  │   no suggestion on screen
+  ▼
+<b>AGENT SELECTS ACTION</b>
+  │
+  ▼
+<b>COMMIT</b> ── written · immutable
+  │
+  ├──────────────┬──────────────┐
+  ▼              ▼              ▼
+model up     model down    data too thin
+  │              │              │
+  ▼              ▼              ▼
+suggestion   policy         no suggestion
++ evidence   fallback       + gap list
+  │              │              │
+  ▼              ▼              ▼
+<b>COMPARE</b>      flag lead      flag lead
+  │
+  ├────────┬─────────┐
+  ▼        ▼         ▼
+match    differ   disputed
+  │        │         │
+  ▼        ▼         ▼
+log   calibration  lead
+      record     review
+  │        │         │
+  └────────┴─────────┘
+           ▼
+     <b>AUDIT TRAIL</b></div></div>
+  <div class="r">
+    <div class="sec"><b>11</b>The whole thing</div>
+    <h2>Every branch<br>ends somewhere.</h2>
+    <p class="b">Three failure paths, and none leave the agent stuck. That's the test I kept returning to: <b>if the model does nothing useful, does the work still get done?</b></p>
+    <div class="note"><div class="k">Why this is near the end</div>
+      <p>Shown first, this is an architecture diagram. Shown here, every box on it is a decision you've already watched me argue for.</p></div>
+  </div>
+</div></div></section>
+
+<!-- 12 WHAT CHANGED -->
+<section class="sl" data-t="What changed"><div class="w" style="max-width:900px">
+  <div class="r"><div class="sec"><b>12</b>What changed</div></div>
+  <table class="cmp r">
+    <tr><th></th><th>Conventional</th><th>This</th></tr>
+    <tr><td>Order</td><td class="was">Suggestion first</td><td class="is">Human commits first</td></tr>
+    <tr><td>Evidence</td><td class="was">Behind an expander</td><td class="is">Facts and clause on the panel</td></tr>
+    <tr><td>Uncertainty</td><td class="was">Always answers</td><td class="is">Declines and names the gaps</td></tr>
+    <tr><td>Disagreement</td><td class="was">Treated as agent error</td><td class="is">Logged as a calibration signal</td></tr>
+    <tr><td>Model failure</td><td class="was">Blocks the workflow</td><td class="is">Decision already stands</td></tr>
+    <tr><td>Audit</td><td class="was">Reconstructed after</td><td class="is">A by-product of the sequence</td></tr>
+  </table>
+  <div class="r" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--bd);
+    display:flex;justify-content:space-between;gap:26px;flex-wrap:wrap;align-items:flex-end">
+    <div style="max-width:430px">
+      <div class="meta" style="margin-bottom:6px">How it was built</div>
+      <p class="b">A browser prototype running against a local LLM, so the interaction was tested against real model output, including the runs where it was inconsistent or wrong, rather than scripted responses. The HTML scaffold was AI-assisted; the system prompt, the failure states and the decision architecture are mine.</p>
+    </div>
+    <div>
+      <a class="cardlink" href="https://shibil33.github.io/upgraded-octo-meme/" target="_blank" rel="noopener">Open the prototype ↗</a>
+      <p class="b" style="margin-top:13px;font-size:13px">Shibil Mohammed · <a class="lnk" href="mailto:ntshibil@gmail.com">ntshibil@gmail.com</a><br>
+      <span class="meta">August 2026</span></p>
+    </div>
+  </div>
+</div></section>
+
+<div class="bar">
+  <div class="cnt" id="cnt">01 / 13</div>
+  <div class="pips" id="pips"></div>
+  <div class="ar">
+    <button id="pv" onclick="step(-1)" aria-label="Previous">←</button>
+    <button id="nx" onclick="step(1)" aria-label="Next">→</button>
+  </div>
+</div>
+</div></div>
+
+<script>
+const S=[...document.querySelectorAll('.sl')],N=S.length;let i=0;const seen=new Set([0]);
+const toc=document.getElementById('toc');
+toc.innerHTML=S.map((s,k)=>`<button onclick="goTo(${k})"><span class="n">${String(k+1).padStart(2,'0')}</span>${s.dataset.t}</button>`).join('');
+const T=[...toc.children];
+const pips=document.getElementById('pips');
+pips.innerHTML=S.map((_,k)=>`<i onclick="goTo(${k})"></i>`).join('');
+const P=[...pips.children];
+
+/* pin ↔ callout: hover on desktop, tap on touch. Without the tap path the
+   entire annotation system is invisible on a phone. */
+S.forEach(sl=>{
+  sl.querySelectorAll('.cal').forEach(cal=>{
+    const pin=sl.querySelector('.pin[data-c="'+cal.dataset.c+'"]');
+    if(!pin)return;
+    const on=()=>{pin.classList.add('hot');cal.classList.add('hot')};
+    const off=()=>{pin.classList.remove('hot');cal.classList.remove('hot')};
+    const toggle=e=>{e.preventDefault();
+      const was=pin.classList.contains('hot');
+      sl.querySelectorAll('.pin,.cal').forEach(x=>x.classList.remove('hot'));
+      if(!was)on();
+    };
+    [cal,pin].forEach(el=>{
+      el.addEventListener('mouseenter',on);
+      el.addEventListener('mouseleave',off);
+      el.addEventListener('click',toggle);
+    });
+  });
+});
+
+function paint(){
+  S.forEach((s,k)=>s.classList.toggle('on',k===i));
+  T.forEach((b,k)=>b.className=k===i?'on':(seen.has(k)?'done':''));
+  P.forEach((p,k)=>p.className=k===i?'ac':(seen.has(k)?'dn':''));
+  document.getElementById('cnt').textContent=String(i+1).padStart(2,'0')+' / '+String(N).padStart(2,'0');
+  document.getElementById('pv').disabled=i===0;
+  document.getElementById('nx').disabled=i===N-1;
+  S[i].scrollTop=0;
+  if(T[i])T[i].scrollIntoView({block:'nearest'});
+}
+function goTo(k){i=Math.max(0,Math.min(N-1,k));seen.add(i);paint()}
+function step(d){goTo(i+d)}
+
+addEventListener('keydown',e=>{
+  /* don't hijack arrows while the rail or a link has focus */
+  const t=e.target.tagName;
+  if(t==='A'||t==='BUTTON'||t==='INPUT'||t==='TEXTAREA')return;
+  if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();step(1)}
+  if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();step(-1)}
+  if(e.key==='Home')goTo(0); if(e.key==='End')goTo(N-1);
+});
+let x0=null,y0=null;
+addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  if(x0===null)return;
+  const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6)step(dx<0?1:-1);
+  x0=null;
+},{passive:true});
+paint();
+</script>

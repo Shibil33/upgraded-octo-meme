@@ -46,13 +46,14 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:-.035
   background:linear-gradient(148deg,#8E8B85 0%,#5C5952 12%,#3B3934 30%,#6E6B64 50%,#312F2B 72%,#5A5750 88%,#8A8781 100%);
   box-shadow:0 2px 3px rgba(255,255,255,.34) inset,0 -2px 3px rgba(0,0,0,.45) inset,
              0 34px 70px -14px rgba(28,24,18,.44),0 8px 22px -6px rgba(28,24,18,.28)}
-/* side rails */
-.device i{position:absolute;background:linear-gradient(180deg,#6B6862,#3A3833);border-radius:2px;pointer-events:none}
-.b-act {left:-2.5px;top:150px;width:3.5px;height:32px;border-radius:2px 0 0 2px}
-.b-up  {left:-2.5px;top:212px;width:3.5px;height:62px;border-radius:2px 0 0 2px}
-.b-dn  {left:-2.5px;top:288px;width:3.5px;height:62px;border-radius:2px 0 0 2px}
-.b-pwr {right:-2.5px;top:232px;width:3.5px;height:96px;border-radius:0 2px 2px 0}
-.b-cam {right:-2.5px;top:372px;width:3.5px;height:38px;border-radius:0 2px 2px 0;
+/* side rails — scoped to the button classes only, never to bare <i> */
+.rail-btn{position:absolute;background:linear-gradient(180deg,#6B6862,#3A3833);
+  border-radius:2px;pointer-events:none}
+.b-act {left:-2.5px;top:158px;width:3.5px;height:32px;border-radius:2px 0 0 2px}
+.b-up  {left:-2.5px;top:222px;width:3.5px;height:62px;border-radius:2px 0 0 2px}
+.b-dn  {left:-2.5px;top:300px;width:3.5px;height:62px;border-radius:2px 0 0 2px}
+.b-pwr {right:-2.5px;top:244px;width:3.5px;height:96px;border-radius:0 2px 2px 0}
+.b-cam {right:-2.5px;top:388px;width:3.5px;height:38px;border-radius:0 2px 2px 0;
   background:linear-gradient(180deg,#9A968E,#59564F)}
 
 .phone{width:402px;height:874px;background:var(--canvas);color:var(--ink);border-radius:55px;
@@ -99,7 +100,8 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:-.035
 .icon-btn:active{background:var(--raised)}
 .icon-btn.bordered{margin:0;width:38px;height:38px;border:1px solid var(--line);font-size:15px}
 .dots{display:flex;gap:6px}
-.dot{width:6px;height:6px;border-radius:3px;background:var(--line);transition:all var(--t) var(--ease)}
+.dot{width:6px;height:6px;border-radius:3px;background:var(--line);position:static;display:block;
+  transition:all var(--t) var(--ease)}
 .dot.act{background:var(--emph);width:22px}
 
 /* ══════════ TYPE ══════════ */
@@ -173,7 +175,7 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:-.035
 
 /* ══════════ SPLIT BAR ══════════ */
 .split{display:flex;height:9px;border-radius:5px;overflow:hidden;gap:2px}
-.split i{display:block;transition:flex-grow var(--t-slow) var(--ease)}
+.split i{display:block;position:static;transition:flex-grow var(--t-slow) var(--ease)}
 .sg-e{background:var(--ink)} .sg-b{background:#4E4E52} .sg-l{background:#6E6E6B} .sg-s{background:#2E2E32}
 
 /* ══════════ BUDGET ROW ══════════ */
@@ -181,7 +183,7 @@ h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:-.035
   border-bottom:1px solid var(--line-soft)}
 .row:last-child{border-bottom:0}
 .row .l{display:flex;align-items:flex-start;gap:11px;min-width:0}
-.sw{width:8px;height:8px;border-radius:2px;flex:0 0 8px;margin-top:6px}
+.sw{width:8px;height:8px;border-radius:2px;flex:0 0 8px;margin-top:6px;position:static;display:block}
 .rname{font-family:var(--font-display);font-size:15px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:7px}
 .tag{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--ink-2);border:1px solid var(--line);
   border-radius:4px;padding:2px 6px}
@@ -219,7 +221,7 @@ input[type=range]:disabled::-webkit-slider-thumb{background:var(--line)}
 .prow:last-child{border-bottom:0}
 .prow .pn{font-size:14px;font-weight:600;width:74px;flex:0 0 74px}
 .track{flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden;position:relative}
-.track i{display:block;height:100%;border-radius:3px;background:var(--ink-3);
+.track i{display:block;position:static;height:100%;border-radius:3px;background:var(--ink-3);
   transition:width 420ms var(--ease),background var(--t-slow)}
 .track i.warn{background:var(--warn)} .track i.bad{background:var(--bad)}
 .track .pace{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-2);opacity:.45}
@@ -365,7 +367,7 @@ input[type=range]:disabled::-webkit-slider-thumb{background:var(--line)}
 <div class="stage">
 
 <div class="device">
-  <i class="b-act"></i><i class="b-up"></i><i class="b-dn"></i><i class="b-pwr"></i><i class="b-cam"></i>
+  <i class="rail-btn b-act"></i><i class="rail-btn b-up"></i><i class="rail-btn b-dn"></i><i class="rail-btn b-pwr"></i><i class="rail-btn b-cam"></i>
 <div class="phone">
   <div class="offline" id="offline">No connection — logging still works, we'll sync later</div>
 

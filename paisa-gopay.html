@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paisa · GoPay theme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* ── GoPay design system, applied to Paisa ── */
+  --font:'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-ios:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Helvetica Neue',sans-serif;
+
+  /* type: GoPay's ranges. 14 caption · 16 secondary · 18 body · 20–22 titles and amounts
+     · 24 section · 28–32 display. Nothing larger: spacing carries the hierarchy. */
+  --fs-1:14px; --fs-2:16px; --fs-3:18px; --fs-4:20px;
+  --fs-5:22px; --fs-6:24px; --fs-7:28px; --fs-8:32px;
+  --w-hero:700; --w-amt:600; --w-name:500; --w-body:400;
+  --ls-caps:0;                        /* sentence case, no tracked capitals */
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px;
+  /* radius: 8 small controls · 999 buttons · 12 minor · 20 cards · 28 primary cards */
+  --r-1:8px; --r-2:999px; --r-3:12px; --r-4:20px; --r-5:28px;
+  --h-primary:56px; --h-secondary:48px; --h-compact:44px; --h-key:56px; --tap:48px;
+
+  --page:#EDEFF1; --page-line:#D8DBDC;
+  --page-ink:#181818; --page-ink-2:#666D73; --page-ink-3:#666D73;
+  --green:#4FA45F; --green-lt:#EAF6ED; --gold:var(--green);
+
+  --canvas:#EDEFF1; --surface:#F9FBFC; --raised:#F1F3F4;
+  --line:#E3E5E6; --line-soft:#E3E5E6;
+  /* GoPay gives two text colours and says to rank by weight, not colour */
+  --ink:#181818; --ink-2:#666D73; --ink-3:#666D73;
+  /* primary button is near-black: white on GoPay green measures ~3:1, below the 4.5:1 body-text minimum */
+  --emph:#181818; --emph-ink:#FFFFFF;
+
+  /* status, from GoPay's own category colours */
+  --ok:#4FA45F;   --ok-dim:#EAF6ED;  --ok-line:rgba(79,164,95,.35);
+  --warn:#F28B61; --warn-dim:#FFF0EA;--warn-line:rgba(242,139,97,.45);
+  --bad:#D83232;  --bad-dim:#FCECEC; --bad-line:rgba(216,50,50,.30);
+  --wait:#666D73; --wait-dim:#F1F3F4;--wait-line:#D8DBDC;
+
+  --ease:cubic-bezier(.2,0,0,1); --spring:cubic-bezier(.2,1.1,.3,1);
+  --t-fast:120ms; --t:220ms; --t-slow:320ms; --t-slower:420ms;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--page);font-family:var(--font);color:var(--page-ink);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:var(--s-8) var(--s-5)}
+.stage{display:flex;align-items:center;gap:52px;flex-wrap:wrap;justify-content:center}
+button,input{font-family:inherit}
+:focus-visible{outline:2px solid var(--emph);outline-offset:2px;border-radius:var(--r-2)}
+.num{font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.02em}
+.caps{font-size:var(--fs-1);font-weight:var(--w-amt);letter-spacing:var(--ls-caps);text-transform:uppercase}
+.ic{width:20px;height:20px;display:block;flex:0 0 20px;fill:none;stroke:currentColor;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ic-s{width:16px;height:16px;flex:0 0 16px}
+
+/* ══════════ DEVICE — iPhone 17 Pro, 402x874pt ══════════ */
+.device{position:relative;flex:0 0 auto;padding:11px;border-radius:66px;
+  background:linear-gradient(148deg,#8E8B85 0%,#5C5952 12%,#3B3934 30%,#6E6B64 50%,#312F2B 72%,#5A5750 88%,#8A8781 100%);
+  box-shadow:0 2px 3px rgba(255,255,255,.34) inset,0 -2px 3px rgba(0,0,0,.45) inset,
+             0 34px 70px -18px rgba(24,24,24,.28),0 8px 22px -8px rgba(24,24,24,.16)}
+.rail-btn{position:absolute;background:linear-gradient(180deg,#6B6862,#3A3833);
+  border-radius:2px;pointer-events:none}
+.b-act{left:-2.5px;top:158px;width:3.5px;height:32px;border-radius:2px 0 0 2px}
+.b-up {left:-2.5px;top:222px;width:3.5px;height:62px;border-radius:2px 0 0 2px}
+.b-dn {left:-2.5px;top:300px;width:3.5px;height:62px;border-radius:2px 0 0 2px}
+.b-pwr{right:-2.5px;top:244px;width:3.5px;height:96px;border-radius:0 2px 2px 0}
+.b-cam{right:-2.5px;top:388px;width:3.5px;height:38px;border-radius:0 2px 2px 0;
+  background:linear-gradient(180deg,#9A968E,#59564F)}
+
+.phone{width:402px;height:874px;background:var(--canvas);color:var(--ink);border-radius:55px;
+  overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 0 1.5px #14120F}
+
+.status{height:62px;flex:0 0 auto;position:relative;z-index:80;pointer-events:none}
+.status .time{position:absolute;left:0;top:0;width:138px;height:100%;display:grid;place-items:center;
+  padding-top:var(--s-1);font-family:var(--font-ios);font-size:16px;font-weight:600;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.island{position:absolute;left:50%;transform:translateX(-50%);top:14px;width:125px;height:37px;
+  background:#000;border-radius:var(--r-4)}
+.island:after{content:"";position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  width:9px;height:9px;border-radius:50%;background:#0E1418;box-shadow:0 0 0 .5px rgba(120,140,160,.28) inset}
+.status .icons{position:absolute;right:22px;top:0;height:100%;display:flex;align-items:center;
+  gap:5px;padding-top:var(--s-1)}
+.status .icons svg{display:block}
+
+.vp{flex:1;position:relative;overflow:hidden}
+.homebar{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:140px;height:5px;
+  border-radius:2.5px;background:var(--ink);opacity:.3;z-index:60;pointer-events:none}
+
+/* ══════════ SHELL — directional transitions ══════════ */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;--dx:0px}
+.screen.on{display:flex}
+.screen.on>*{animation:enter var(--t) var(--ease) backwards}
+.screen.on>*:nth-child(2){animation-delay:30ms}
+.screen.on>*:nth-child(3){animation-delay:55ms}
+@keyframes enter{from{opacity:0;transform:translateX(var(--dx))}to{opacity:1;transform:none}}
+.head{flex:0 0 auto;padding:var(--s-2) var(--s-5) var(--s-5)}
+.body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 var(--s-5)}
+.body::-webkit-scrollbar{display:none}
+.foot{flex:0 0 auto;padding:var(--s-4) var(--s-5) var(--s-8);position:relative;z-index:10;
+  background:linear-gradient(to top,var(--canvas) 74%,rgba(237,239,241,0))}
+/* one rule replaces three hardcoded spacer divs */
+.screen.tabbed .body{padding-bottom:114px}
+
+.nav{display:flex;align-items:center;gap:var(--s-3);min-height:var(--tap)}
+.icon-btn{width:var(--tap);height:var(--tap);margin-left:-11px;border-radius:50%;border:0;
+  background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;
+  transition:background var(--t-fast)}
+.icon-btn:active{background:var(--raised)}
+.icon-btn.bordered{margin:0;width:var(--h-secondary);height:var(--h-secondary);border:1px solid var(--line)}
+.dots{display:flex;gap:6px}
+.dot{width:6px;height:6px;border-radius:3px;background:var(--line);position:static;display:block;
+  transition:all var(--t) var(--ease)}
+.dot.act{background:var(--emph);width:22px}
+
+/* ══════════ TYPE ══════════ */
+h1,h2{font-weight:var(--w-hero);letter-spacing:-.025em;line-height:1.1}
+.h{font-size:var(--fs-6);margin-bottom:var(--s-3)}
+.h-sm{font-size:var(--fs-5)}
+.sub{font-size:var(--fs-3);font-weight:var(--w-body);line-height:1.5;color:var(--ink-2)}
+.eyebrow{font-size:var(--fs-1);font-weight:var(--w-amt);letter-spacing:var(--ls-caps);
+  text-transform:uppercase;color:var(--ink-3)}
+.sect{display:flex;justify-content:space-between;align-items:baseline;margin:var(--s-6) 0 var(--s-1)}
+
+/* ══════════ BUTTONS — 3 heights ══════════ */
+.btn{width:100%;min-height:var(--h-primary);border:0;border-radius:var(--r-2);
+  background:var(--emph);color:var(--emph-ink);font-size:var(--fs-3);font-weight:500;
+  letter-spacing:-.015em;cursor:pointer;transition:transform var(--t-fast) var(--ease),opacity var(--t-fast)}
+.btn:active{transform:scale(.982)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.sec{background:var(--raised);color:var(--ink);border:1px solid var(--line)}
+.btn.ghost{background:transparent;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.4);
+  min-height:var(--h-secondary);font-size:var(--fs-2)}
+.btn.danger{background:transparent;color:var(--bad);border:1px solid var(--bad-line)}
+.btn.sm{min-height:var(--h-compact);font-size:var(--fs-2);border-radius:var(--r-2);padding:0 var(--s-3);width:auto}
+.link{display:block;width:100%;min-height:var(--tap);background:none;border:0;color:var(--ink-2);
+  font-size:var(--fs-2);font-weight:var(--w-body);cursor:pointer;margin-top:var(--s-1)}
+.link:active{color:var(--ink)}
+.why{font-size:var(--fs-2);color:var(--ink-3);text-align:center;margin-bottom:var(--s-2);
+  min-height:18px;font-weight:var(--w-body)}
+
+/* ══════════ FIELD ══════════ */
+.field{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-3);
+  padding:var(--s-4) var(--s-5);transition:border-color var(--t)}
+.field:focus-within{border-color:var(--emph)}
+.field .lbl{display:block;font-size:var(--fs-1);font-weight:var(--w-amt);
+  letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--ink-3);margin-bottom:var(--s-2)}
+.money{display:flex;align-items:baseline;gap:var(--s-1)}
+.money>.cur{font-size:var(--fs-5);font-weight:var(--w-name);color:var(--ink-3)}
+.money input{background:none;border:0;outline:none;color:var(--ink);font-family:inherit;
+  font-weight:var(--w-hero);font-size:var(--fs-7);letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;width:100%;min-width:0;padding:0}
+.txt{width:100%;background:none;border:0;outline:none;color:var(--ink);font-size:var(--fs-3);
+  font-weight:var(--w-body);padding:2px 0}
+.txt::placeholder{color:var(--ink-3)}
+.hint{font-size:var(--fs-2);color:var(--ink-3);margin-top:var(--s-2);line-height:1.45;font-weight:var(--w-body)}
+.cnt{font-size:var(--fs-1);color:var(--ink-3);text-align:right;margin-top:var(--s-1);
+  font-variant-numeric:tabular-nums;font-weight:var(--w-body)}
+.cnt.near{color:var(--warn)}
+
+.chips{display:flex;gap:var(--s-2)}
+.chip{flex:1;min-height:var(--tap);border-radius:var(--r-3);border:1px solid var(--line);
+  background:transparent;color:var(--ink-2);font-size:var(--fs-2);font-weight:var(--w-name);
+  cursor:pointer;transition:all var(--t-fast) var(--ease)}
+.chip.on{background:var(--emph);color:var(--emph-ink);border-color:var(--emph);font-weight:var(--w-amt)}
+.chip:active{transform:scale(.97)}
+
+/* ══════════ CALLOUT ══════════ */
+.callout{display:flex;gap:var(--s-3);background:var(--surface);border:1px solid var(--line-soft);
+  border-radius:var(--r-3);padding:var(--s-4);font-size:var(--fs-2);font-weight:var(--w-body);
+  line-height:1.5;color:var(--ink-2)}
+.callout b{color:var(--ink);font-weight:var(--w-amt)}
+.callout .ic{margin-top:1px;color:var(--ink-3)}
+.callout.warn{background:var(--warn-dim);border-color:var(--warn-line)}
+.callout.warn b,.callout.warn .ic{color:var(--warn)}
+.callout.bad{background:var(--bad-dim);border-color:var(--bad-line)}
+.callout.bad b,.callout.bad .ic{color:var(--bad)}
+.callout.wait{background:var(--wait-dim);border-color:var(--wait-line)}
+.callout.wait b,.callout.wait .ic{color:var(--wait)}
+
+/* ══════════ HERO ══════════ */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-4);
+  padding:var(--s-5);position:relative;overflow:hidden;transition:border-color var(--t-slow)}
+.hero:after{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--state,transparent);
+  transform:scaleX(var(--fill,1));transform-origin:left;
+  transition:background var(--t-slow),transform var(--t-slower) var(--ease)}
+.hero .big{font-size:var(--fs-8);font-weight:var(--w-hero);letter-spacing:-.05em;
+  font-variant-numeric:tabular-nums;line-height:1.02;margin:var(--s-2) 0 var(--s-1);
+  color:var(--state-ink,var(--ink));transition:color var(--t-slow);display:flex;align-items:baseline}
+.hero .cur{font-size:.62em;font-weight:var(--w-name);color:var(--ink-3);margin-right:.06em}
+.hero .big.settle{animation:settle var(--t-fast) var(--ease)}
+@keyframes settle{from{transform:translateY(-2px)}to{transform:none}}
+.hero .meta{font-size:var(--fs-2);color:var(--ink-2);font-variant-numeric:tabular-nums;font-weight:var(--w-body)}
+.hero .expl{font-size:var(--fs-2);color:var(--ink-3);line-height:1.5;margin-top:var(--s-3);
+  padding-top:var(--s-3);border-top:1px solid var(--line-soft);font-weight:var(--w-body)}
+.hero .example{position:absolute;top:var(--s-5);right:var(--s-5);font-size:var(--fs-1);
+  font-weight:var(--w-amt);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--ink-3);
+  border:1px solid var(--line);border-radius:var(--r-1);padding:3px 6px}
+
+.split{display:flex;height:9px;border-radius:5px;overflow:hidden;gap:2px}
+.split i{display:block;position:static;transition:flex-grow var(--t-slow) var(--ease)}
+.sg-e{background:#181818} .sg-b{background:#C9CCCE} .sg-l{background:#666D73} .sg-s{background:#4FA45F}
+
+/* ══════════ ONE ROW BASE — .row/.crow/.prow/.tx all extend it ══════════ */
+.list-row{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);
+  padding:var(--s-3) 0;border-bottom:1px solid var(--line-soft)}
+.list-row:last-child{border-bottom:0}
+.row{align-items:flex-start;padding:var(--s-4) 0}
+.row .l{display:flex;align-items:flex-start;gap:var(--s-3);min-width:0}
+.sw{width:8px;height:8px;border-radius:2px;flex:0 0 8px;margin-top:6px;position:static;display:block}
+.rname{font-size:var(--fs-3);font-weight:var(--w-name);letter-spacing:-.02em;
+  display:flex;align-items:center;gap:var(--s-2)}
+.tag{font-size:var(--fs-1);font-weight:var(--w-amt);letter-spacing:var(--ls-caps);color:var(--ink-2);
+  border:1px solid var(--line);border-radius:var(--r-1);padding:2px 6px}
+.rdesc{font-size:var(--fs-2);color:var(--ink-3);margin-top:var(--s-1);line-height:1.4;font-weight:var(--w-body)}
+.ramt{font-size:var(--fs-3);font-weight:var(--w-amt);font-variant-numeric:tabular-nums;
+  letter-spacing:-.025em;text-align:right;white-space:nowrap}
+.rpct{font-size:var(--fs-1);color:var(--ink-3);font-variant-numeric:tabular-nums;
+  margin-top:var(--s-1);text-align:right;font-weight:var(--w-body)}
+.pulse{animation:pl var(--t-slower) var(--ease)}
+@keyframes pl{0%{color:var(--ink-2)}100%{color:var(--ink)}}
+
+input[type=range]{-webkit-appearance:none;width:100%;height:var(--tap);background:none;cursor:pointer;display:block}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:var(--emph);margin-top:-11px;border:0;box-shadow:0 3px 10px rgba(0,0,0,.6)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:50%;background:var(--emph)}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--line)}
+.slab{display:flex;justify-content:space-between;font-size:var(--fs-1);color:var(--ink-3);
+  font-weight:var(--w-amt);letter-spacing:var(--ls-caps);text-transform:uppercase}
+
+.crow .cn{font-size:var(--fs-3);font-weight:var(--w-name)}
+.crow .cd{font-size:var(--fs-2);color:var(--ink-3);margin-top:3px;font-weight:var(--w-body)}
+.crow .ca{font-size:var(--fs-3);font-weight:var(--w-amt);font-variant-numeric:tabular-nums;
+  color:var(--ink-2);white-space:nowrap}
+
+.prow{cursor:pointer;min-height:var(--tap);width:100%;background:none;border-left:0;border-right:0;
+  border-top:0;text-align:left;color:inherit;font-family:inherit}
+.prow .pn{font-size:var(--fs-3);font-weight:var(--w-name);width:74px;flex:0 0 74px}
+.track{flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden;position:relative}
+.track i{display:block;position:static;height:100%;border-radius:3px;background:var(--ink-3);
+  transition:width var(--t-slower) var(--ease),background var(--t-slow)}
+.track i.warn{background:var(--warn)} .track i.bad{background:var(--bad)}
+.track .pace{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--ink-2);opacity:.45}
+/* was flex:0 0 96px — clipped at ₹2,80,200 */
+.pv{font-size:var(--fs-2);font-weight:var(--w-body);font-variant-numeric:tabular-nums;
+  color:var(--ink-3);text-align:right;flex:0 0 auto;min-width:96px;white-space:nowrap}
+.pv b{color:var(--ink);font-weight:var(--w-amt);font-size:var(--fs-2)}
+.pv.over b{color:var(--bad)}
+
+.tx{cursor:pointer;min-height:var(--tap);width:100%;background:none;border-left:0;border-right:0;
+  border-top:0;text-align:left;color:inherit;font-family:inherit}
+.tx .n{font-size:var(--fs-3);font-weight:var(--w-name)}
+.tx .c{font-size:var(--fs-2);color:var(--ink-3);margin-top:3px;font-weight:var(--w-body)}
+.tx .a{font-size:var(--fs-3);font-weight:var(--w-amt);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* destructive action needs a real target */
+.tx .del{min-width:var(--tap);min-height:var(--tap);display:grid;place-items:center;margin-right:-10px;
+  background:none;border:0;color:var(--ink-3);cursor:pointer;border-radius:50%;transition:all var(--t-fast)}
+.tx .del:active{color:var(--bad);background:var(--bad-dim)}
+
+.empty{border:1px dashed var(--line);border-radius:var(--r-4);padding:var(--s-6) var(--s-5);text-align:center}
+.empty h4{font-size:var(--fs-4);font-weight:var(--w-hero);letter-spacing:-.03em;margin-bottom:var(--s-2)}
+.empty p{font-size:var(--fs-2);color:var(--ink-3);line-height:1.5;margin-bottom:var(--s-4);font-weight:var(--w-body)}
+.sk{background:linear-gradient(90deg,var(--surface) 25%,var(--raised) 50%,var(--surface) 75%);
+  background-size:220% 100%;animation:shim 1.4s infinite;border-radius:6px}
+@keyframes shim{to{background-position:-220% 0}}
+
+.step{display:flex;gap:var(--s-3);align-items:flex-start;padding:var(--s-4) 0;border-bottom:1px solid var(--line-soft)}
+.step:last-child{border-bottom:0}
+.sdot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);flex:0 0 22px;
+  display:grid;place-items:center;font-size:var(--fs-1);font-weight:var(--w-amt);color:var(--ink-3);
+  margin-top:1px;transition:all var(--t-slow)}
+.sdot.doing{border-color:var(--wait);color:var(--wait);animation:bl 1.3s infinite}
+.sdot.done{border-color:var(--ok);background:var(--ok);color:var(--emph-ink)}
+.sdot.fail{border-color:var(--bad);background:var(--bad);color:var(--emph-ink)}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.32}}
+.step .t{font-size:var(--fs-3);font-weight:var(--w-name)}
+.step .d{font-size:var(--fs-2);color:var(--ink-3);margin-top:var(--s-1);line-height:1.4;font-weight:var(--w-body)}
+.step.idle .t{color:var(--ink-3);font-weight:var(--w-body)}
+
+/* neutral, not a status colour: confirmation isn't a state that needs attention */
+.tick{width:54px;height:54px;border-radius:50%;background:var(--raised);border:1px solid var(--line);
+  color:var(--ink);display:grid;place-items:center;animation:pop var(--t-slower) var(--spring)}
+@keyframes pop{from{transform:scale(.84);opacity:0}to{transform:none;opacity:1}}
+.tick svg path{stroke-dasharray:26;stroke-dashoffset:26;animation:draw var(--t-slow) var(--ease) 140ms forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+.tabs{position:absolute;left:0;right:0;bottom:0;height:82px;background:rgba(249,251,252,.94);
+  backdrop-filter:blur(14px);border-top:1px solid var(--line-soft);display:flex;align-items:flex-start;
+  padding:var(--s-2) var(--s-3) 0;z-index:40}
+.tab{flex:1;background:none;border:0;color:var(--ink-3);font-size:var(--fs-1);font-weight:var(--w-amt);
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;
+  min-height:var(--tap);transition:color var(--t-fast)}
+.tab.on{color:var(--ink)}
+.tab.add{flex:0 0 60px;justify-content:flex-start}
+.tab.add .fab{width:46px;height:46px;border-radius:50%;background:var(--emph);color:var(--emph-ink);
+  display:grid;place-items:center;margin-top:-14px;box-shadow:0 6px 20px rgba(0,0,0,.55);
+  transition:transform var(--t-fast) var(--ease)}
+.tab.add:active .fab{transform:scale(.93)}
+
+.scrim{position:absolute;inset:0;background:rgba(24,24,24,.32);backdrop-filter:blur(3px);z-index:50;
+  opacity:0;pointer-events:none;transition:opacity var(--t)}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--raised);
+  border-radius:var(--r-5) var(--r-5) 0 0;border-top:1px solid var(--line);
+  padding:var(--s-2) var(--s-5) var(--s-8);z-index:51;transform:translateY(101%);
+  transition:transform var(--t-slow) var(--ease);max-height:92%;overflow-y:auto}
+.sheet.on{transform:none}
+.grip{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto var(--s-4)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-2)}
+.pad button{height:var(--h-key);border:0;border-radius:var(--r-3);background:var(--surface);color:var(--ink);
+  font-size:var(--fs-5);font-weight:var(--w-amt);cursor:pointer;display:grid;place-items:center;
+  transition:background var(--t-fast)}
+.pad button:active{background:var(--line)}
+
+.toast{position:absolute;left:var(--s-4);right:var(--s-4);bottom:94px;background:var(--raised);
+  border:1px solid var(--line);border-radius:var(--r-3);padding:var(--s-3) var(--s-3) var(--s-3) var(--s-4);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);z-index:45;
+  box-shadow:0 12px 34px rgba(0,0,0,.6);transform:translateY(18px);opacity:0;pointer-events:none;
+  transition:all var(--t) var(--ease)}
+.toast.on{transform:none;opacity:1;pointer-events:auto}
+.toast .m{font-size:var(--fs-2);font-weight:var(--w-body)}
+.toast button{background:none;border:0;color:var(--ink);font-weight:var(--w-amt);font-size:var(--fs-2);
+  cursor:pointer;padding:6px 2px;white-space:nowrap}
+
+.offline{position:absolute;left:0;right:0;top:0;background:var(--warn);color:#1A1206;
+  font-size:var(--fs-2);font-weight:var(--w-amt);text-align:center;padding:6px;z-index:90;
+  transform:translateY(-100%);transition:transform var(--t)}
+.offline.on{transform:none}
+
+/* ══════════ ANNOTATION ══════════ */
+.notes{width:352px;flex:0 0 auto;align-self:center}
+.notes .rail{display:flex;align-items:center;gap:var(--s-3);margin-bottom:var(--s-6)}
+.notes .pips{display:flex;gap:3px;flex:1}
+.notes .pips i{flex:1;height:2px;border-radius:1px;background:var(--page-line);
+  transition:background var(--t-slower) var(--ease)}
+.notes .pips i.lit{background:var(--gold)}
+.notes .count{font-size:var(--fs-1);font-weight:var(--w-amt);letter-spacing:var(--ls-caps);
+  color:var(--page-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.card{border-left:2px solid var(--gold);padding-left:var(--s-5);min-height:210px}
+.card .kicker{font-size:var(--fs-1);font-weight:500;letter-spacing:var(--ls-caps);
+  text-transform:uppercase;color:var(--gold);margin-bottom:var(--s-3)}
+.card h3{font-size:var(--fs-5);font-weight:var(--w-hero);letter-spacing:-.035em;line-height:1.16;
+  color:var(--page-ink);margin-bottom:var(--s-3)}
+.card p{font-size:var(--fs-3);font-weight:var(--w-body);line-height:1.64;color:var(--page-ink-2)}
+.card p+p{margin-top:var(--s-3)}
+.card p b{color:var(--page-ink);font-weight:var(--w-amt)}
+.card.in{animation:noteIn var(--t-slow) var(--ease)}
+@keyframes noteIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.idle{color:var(--page-ink-3);font-size:var(--fs-3);font-weight:var(--w-body);line-height:1.64;
+  padding-left:22px;min-height:210px}
+.rest{margin-top:var(--s-8);border-top:1px solid var(--page-line);padding-top:var(--s-5);display:none}
+.rest.on{display:block}
+.rest .lead{font-size:var(--fs-1);font-weight:var(--w-amt);letter-spacing:var(--ls-caps);
+  text-transform:uppercase;color:var(--page-ink-3);margin-bottom:var(--s-3)}
+.rest .opts{display:flex;flex-wrap:wrap;gap:6px}
+.rest button{background:transparent;border:1px solid var(--page-line);color:var(--page-ink-2);
+  font-family:var(--font);font-size:var(--fs-2);font-weight:var(--w-name);padding:var(--s-2) var(--s-3);
+  border-radius:var(--r-2);cursor:pointer;transition:all var(--t-fast) var(--ease)}
+.rest button:hover{border-color:var(--gold);color:var(--page-ink)}
+.rest .reset{margin-top:var(--s-3);background:none;border:0;padding:var(--s-2) 0;color:var(--page-ink-3);
+  font-size:var(--fs-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.clock{margin-top:var(--s-8);display:flex;align-items:center;gap:var(--s-3);font-size:var(--fs-1);
+  font-weight:var(--w-amt);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--page-ink-3)}
+.clock label{white-space:nowrap}
+.clock input[type=range]{flex:1;height:26px}
+.clock input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--page-line)}
+.clock input[type=range]::-webkit-slider-thumb{width:14px;height:14px;margin-top:-6px;
+  background:var(--page-ink);box-shadow:none}
+.clock input[type=range]::-moz-range-track{height:2px;background:var(--page-line)}
+.clock input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--page-ink)}
+.clock .num{color:var(--page-ink);font-size:var(--fs-2);width:18px;text-align:right}
+
+@media (max-width:840px){.stage{gap:var(--s-8)}.notes{width:402px;order:2}}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;
+    transition-property:opacity,color,background-color,border-color!important}
+}
+
+/* ══════════ GoPay component rules ══════════ */
+.head{padding:var(--s-2) 24px var(--s-5)} .body{padding:0 24px} .foot{padding:var(--s-4) 24px var(--s-8)}
+.caps,.eyebrow,.field .lbl,.slab,.tag,.hero .example,.card .kicker,.rest .lead,.clock,.notes .count{
+  text-transform:none;letter-spacing:0}
+.eyebrow{font-weight:var(--w-name);color:var(--ink-2)}
+.field .lbl{font-weight:var(--w-name);color:var(--ink-2)}
+
+/* circular controls: surface, hairline, green icon */
+.icon-btn{margin-left:0;width:48px;height:48px;background:var(--surface);border:1px solid var(--line);
+  color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.icon-btn.bordered{width:48px;height:48px}
+.dot{background:var(--page-line)} .dot.act{background:var(--green)}
+
+/* primary card: the one place GoPay uses its green-to-teal accent border */
+.hero{border-radius:var(--r-5);padding:28px}
+#home-hero{border:1px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(90deg,#A8D8B1,#9FD8D3,#A8D8B1) border-box}
+.hero .big{font-size:var(--fs-8)}
+.hero .cur{color:var(--ink-2)}
+.hero .example{border-color:var(--line);color:var(--ink-2);background:var(--raised)}
+
+/* related rows live in one container, never a card each */
+#budget-rows,#home-committed,#home-rows,#home-tx,#all-list,#set-rows{background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-4);padding:0 20px}
+#all-list:has(.empty){background:none;border:0;padding:0}
+.sect{margin:32px 0 12px}
+.ramt,.ca,.tx .a{font-size:var(--fs-4)}
+.rpct,.pv{color:var(--ink-2)}
+
+.btn{letter-spacing:0;font-weight:600}
+.btn.sec{background:var(--raised);border-color:var(--line)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--page-line)}
+.link{color:var(--ink);font-weight:var(--w-name);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--page-line)}
+.chip{border-radius:var(--r-2);background:var(--surface)}
+.chip.on{background:var(--green-lt);color:var(--ink);border:1.5px solid var(--green)}
+
+.field{background:var(--surface);border-radius:var(--r-4)}
+.field:focus-within{border-color:var(--green)}
+.callout{background:var(--surface);border-color:var(--line);color:var(--ink-2)}
+/* colour marks the icon and the edge; text stays legible ink */
+.callout.warn b,.callout.bad b,.callout.wait b{color:var(--ink)}
+.callout .ic{color:var(--green)}
+
+.track i{background:var(--ink-2)}
+input[type=range]::-webkit-slider-thumb{background:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+input[type=range]::-moz-range-thumb{background:var(--green)}
+:focus-visible{outline-color:var(--green)}
+
+.tick{background:var(--green-lt);border-color:rgba(79,164,95,.35);color:var(--green)}
+.sdot.done{border-color:var(--green);background:var(--green);color:#fff}
+.sdot.fail{color:#fff}
+
+.tabs{border-top:1px solid var(--line)}
+.tab{font-weight:var(--w-name)}
+.tab.on{color:var(--ink)} .tab.on .ic{color:var(--green)}
+.tab.add .fab{background:var(--green);color:#fff;box-shadow:0 4px 12px rgba(79,164,95,.35)}
+
+.sheet{background:var(--surface);border-top:1px solid var(--line)}
+.pad button{background:var(--raised)}
+.pad button:active{background:var(--line)}
+/* GoPay's dark attribution strip, reused for the one transient message */
+.toast{background:#292929;border:0;color:#fff;box-shadow:0 8px 24px rgba(24,24,24,.24)}
+.toast button{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.offline{background:var(--warn-dim);color:var(--ink);border-bottom:1px solid var(--warn-line)}
+.empty{border-color:var(--page-line);background:var(--surface)}
+.sk{background:linear-gradient(90deg,var(--raised) 25%,var(--line) 50%,var(--raised) 75%);background-size:220% 100%}
+
+/* annotation panel */
+.notes .pips i.lit{background:var(--green)}
+.card{border-left:2px solid var(--green)}
+.card .kicker{color:var(--green);font-weight:600}
+.card h3{letter-spacing:-.02em}
+.rest button{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.rest button:hover{border-color:var(--green)}
+.clock input[type=range]::-webkit-slider-thumb{background:var(--ink)}
+</style>
+
+<!-- ══ ICON SPRITE — replaces 7 Unicode glyphs with inconsistent font coverage ══ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 20 20"><path d="M3 8.8L10 3.5l7 5.3V16a1 1 0 01-1 1h-3.2v-4.8H7.2V17H4a1 1 0 01-1-1V8.8z"/></symbol>
+<symbol id="i-bank" viewBox="0 0 20 20"><path d="M2.8 5.5h14.4v9H2.8z"/><path d="M2.8 8.6h14.4M5.5 11.8h3"/></symbol>
+<symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11"/></symbol>
+<symbol id="i-list" viewBox="0 0 20 20"><path d="M4 6h12M4 10h12M4 14h7.5"/></symbol>
+<symbol id="i-you" viewBox="0 0 20 20"><circle cx="10" cy="7.3" r="2.9"/><path d="M4.4 16.6a5.6 5.6 0 0111.2 0"/></symbol>
+<symbol id="i-tune" viewBox="0 0 20 20"><path d="M4 6.5h3.2M11.2 6.5H16M4 13.5h7.2M15.2 13.5H16"/><circle cx="9.2" cy="6.5" r="2"/><circle cx="13.2" cy="13.5" r="2"/></symbol>
+<symbol id="i-shield" viewBox="0 0 20 20"><path d="M10 3l6 2.3v4.4c0 3.5-2.4 6-6 7-3.6-1-6-3.5-6-7V5.3z"/><path d="M7.6 10.1l1.7 1.7 3.3-3.4"/></symbol>
+<symbol id="i-back" viewBox="0 0 20 20"><path d="M7.3 4.5H16a1 1 0 011 1v9a1 1 0 01-1 1H7.3L2.5 10z"/><path d="M10.4 7.9l3.4 4.2M13.8 7.9l-3.4 4.2"/></symbol>
+<symbol id="i-sync" viewBox="0 0 20 20"><path d="M16 8.4A6.3 6.3 0 004.6 6.6"/><path d="M4 11.6A6.3 6.3 0 0015.4 13.4"/><path d="M4.2 3.6v3h3M15.8 16.4v-3h-3"/></symbol>
+<symbol id="i-alert" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M10 6.4v4.4M10 13.4v.1"/></symbol>
+<symbol id="i-check" viewBox="0 0 20 20"><path d="M4.5 10.4l3.6 3.6 7.4-7.6"/></symbol>
+<symbol id="i-eq" viewBox="0 0 20 20"><path d="M4.5 7.6h11M4.5 12.4h11"/></symbol>
+<symbol id="i-chev" viewBox="0 0 20 20"><path d="M12 4.5L6.5 10l5.5 5.5"/></symbol>
+</defs></svg>
+<div class="stage">
+
+<div class="device">
+  <i class="rail-btn b-act"></i><i class="rail-btn b-up"></i><i class="rail-btn b-dn"></i><i class="rail-btn b-pwr"></i><i class="rail-btn b-cam"></i>
+<div class="phone">
+  <div class="offline" id="offline">No connection — logging still works, we'll sync later</div>
+
+  <div class="status">
+    <div class="time">9:41</div>
+    <div class="island"></div>
+    <div class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+        <rect y="8" width="3" height="4" rx="1" fill="currentColor"/>
+        <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/>
+        <rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/>
+        <rect x="15" width="3" height="12" rx="1" fill="currentColor" fill-opacity=".35"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <path d="M1.1 3.9a10.6 10.6 0 0113.8 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M3.9 6.9a6.6 6.6 0 018.2 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M6.6 9.7a2.4 2.4 0 012.8 0L8 11.4 6.6 9.7z" fill="currentColor"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none">
+        <rect x=".6" y=".6" width="21.8" height="11.8" rx="3.6" stroke="currentColor" stroke-opacity=".35" stroke-width="1.2"/>
+        <rect x="2.2" y="2.2" width="18.6" height="8.6" rx="2.3" fill="currentColor"/>
+        <path d="M24.2 4.4c1 .3 1.6 1.1 1.6 2.1s-.6 1.8-1.6 2.1V4.4z" fill="currentColor" fill-opacity=".35"/></svg>
+    </div>
+  </div>
+
+  <div class="vp">
+
+    <section class="screen on" id="s-splash">
+      <div class="head" style="padding-top:var(--s-6)"><div class="eyebrow">Paisa</div></div>
+      <div class="body">
+        <h1 style="font-size:var(--fs-7);line-height:1.06;margin-bottom:var(--s-3)">Know what's<br>actually yours<br>to spend.</h1>
+        <p class="sub" style="margin-bottom:var(--s-6)">One number, updated as you go. Built in two minutes from your salary and your rent.</p>
+        <div class="hero">
+          <div class="example">Example</div>
+          <div class="eyebrow">Safe to spend</div>
+          <div class="big num"><span class="cur">₹</span><span id="splash-dig">0</span></div>
+          <div class="meta" id="splash-meta"></div>
+          <div class="expl">Built from a ₹48,000 salary and ₹18,000 rent. Yours is computed from your own two numbers on the next screen.</div>
+        </div>
+        <div class="callout" style="margin-top:var(--s-4)">
+          <svg class="ic ic-s"><use href="#i-shield"/></svg>
+          <div>Works without linking a bank. If you link one it's <b>read-only</b>, through an RBI-licensed account aggregator. We never see your login and we can never move money.</div></div>
+        <div style="height:var(--s-5)"></div>
+      </div>
+      <div class="foot">
+        <button class="btn" onclick="go('income')">Set up my budget</button>
+        <button class="link" onclick="go('bank')">I'd rather connect my bank</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-income">
+      <div class="head"><div class="nav"><button class="icon-btn" onclick="go('splash')" aria-label="Back"><svg class="ic"><use href="#i-chev"/></svg></button>
+        <div class="dots"><i class="dot act"></i><i class="dot"></i><i class="dot"></i></div></div></div>
+      <div class="body">
+        <h1 class="h">What lands in your account each month?</h1>
+        <p class="sub" style="margin-bottom:var(--s-6)">Take-home, after tax. A rough number is fine.</p>
+        <div class="field"><span class="lbl" id="lbl-income">Monthly take-home</span>
+          <div class="money"><span class="cur">₹</span><input id="f-income" inputmode="numeric" value="48,000"
+            aria-labelledby="lbl-income" oninput="fmt(this,'income')" onblur="renderIncome()"></div></div>
+        <div class="chips" style="margin-top:var(--s-3)" role="group" aria-label="Income type">
+          <button class="chip on" onclick="setEmp('salaried',this)">Salaried</button>
+          <button class="chip" onclick="setEmp('freelance',this)">Freelance</button>
+          <button class="chip" onclick="setEmp('varies',this)">It varies</button></div>
+        <div id="emp-note" style="margin-top:var(--s-4)" aria-live="polite"></div>
+        <div style="height:var(--s-5)"></div>
+      </div>
+      <div class="foot">
+        <div class="why" id="why-income"></div>
+        <button class="btn" id="cta-income" onclick="go('rent')">Continue</button></div>
+    </section>
+
+    <section class="screen" id="s-rent">
+      <div class="head"><div class="nav"><button class="icon-btn" onclick="go('income')" aria-label="Back"><svg class="ic"><use href="#i-chev"/></svg></button>
+        <div class="dots"><i class="dot"></i><i class="dot act"></i><i class="dot"></i></div></div></div>
+      <div class="body">
+        <h1 class="h">And how much is rent?</h1>
+        <p class="sub" style="margin-bottom:var(--s-6)">The one number everybody knows exactly. It decides most of your budget, so guessing it just wastes your time later.</p>
+        <div class="field"><span class="lbl" id="lbl-rent">Rent per month</span>
+          <div class="money"><span class="cur">₹</span><input id="f-rent" inputmode="numeric" value="18,000"
+            aria-labelledby="lbl-rent" oninput="fmt(this,'rent')" onblur="renderRent()"></div>
+          <div class="hint">Include maintenance if you pay it. Living with family? Put 0.</div></div>
+        <div id="rent-note" style="margin-top:var(--s-4)" aria-live="polite"></div>
+        <div style="height:var(--s-5)"></div>
+      </div>
+      <div class="foot"><button class="btn" onclick="build()">Build my budget</button></div>
+    </section>
+
+    <section class="screen" id="s-budget">
+      <div class="head"><div class="nav"><button class="icon-btn" onclick="go('rent')" aria-label="Back"><svg class="ic"><use href="#i-chev"/></svg></button>
+        <div class="dots"><i class="dot"></i><i class="dot"></i><i class="dot act"></i></div></div></div>
+      <div class="body">
+        <h1 class="h">Here's your starting budget.</h1>
+        <p class="sub" style="margin-bottom:var(--s-5)">Essentials come from your rent, not a rule of thumb. One slider changes how the rest splits.</p>
+        <div class="split" aria-hidden="true">
+          <i class="sg-e" id="sb-e"></i><i class="sg-b" id="sb-b"></i><i class="sg-l" id="sb-l"></i><i class="sg-s" id="sb-s"></i></div>
+        <div id="budget-rows" style="margin-top:var(--s-1)" aria-live="polite"></div>
+        <div style="margin-top:var(--s-4)">
+          <div class="slab"><span>More savings</span><span>More spending</span></div>
+          <input type="range" id="split" min="25" max="85" value="60" aria-label="Split between savings and spending" oninput="setSplit(this.value)"></div>
+        <div id="strain" aria-live="polite"></div>
+        <div style="height:var(--s-5)"></div>
+      </div>
+      <div class="foot">
+        <div class="why" id="why-budget"></div>
+        <button class="btn" id="cta-budget" onclick="commit()">Set this budget</button></div>
+    </section>
+
+    <section class="screen" id="s-live">
+      <div class="head" style="padding-top:var(--s-8)"><div class="tick">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div>
+      <div class="body">
+        <h1 class="h" id="live-h">Your budget is live.</h1>
+        <p class="sub" style="margin-bottom:var(--s-6)">One number to watch. Log what you spend and it moves.</p>
+        <div class="hero">
+          <div class="eyebrow">Safe to spend</div>
+          <div class="big num"><span class="cur">₹</span><span id="live-dig">0</span></div>
+          <div class="meta" id="live-meta"></div>
+          <div class="expl">Rent and bills are set aside. Savings are counted. This is the part that's freely yours.</div></div>
+      </div>
+      <div class="foot"><button class="btn" onclick="go('home')">Log my first expense</button>
+        <button class="link" onclick="go('bank')">Connect a bank so it logs itself</button></div>
+    </section>
+
+    <section class="screen tabbed" id="s-home">
+      <div class="head" style="padding-bottom:var(--s-4)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2 class="h-sm" id="home-month" style="margin:0">—</h2>
+          <button class="icon-btn bordered" onclick="go('settings')" aria-label="Settings"><svg class="ic"><use href="#i-tune"/></svg></button></div>
+      </div>
+      <div class="body">
+        <div class="hero" id="home-hero">
+          <div class="eyebrow" id="home-lbl">Safe to spend</div>
+          <div class="big num" id="home-big" role="status" aria-live="polite"><span class="cur">₹</span><span id="home-dig">0</span></div>
+          <div class="meta" id="home-meta"></div>
+          <div class="expl" id="home-expl"></div></div>
+        <div id="home-empty"></div>
+        <div id="home-full" style="display:none">
+          <div class="sect"><span class="eyebrow">Committed</span><span class="eyebrow">Already accounted for</span></div>
+          <div id="home-committed"></div>
+          <div class="sect"><span class="eyebrow">Moves as you spend</span><span class="eyebrow" id="pace-lbl"></span></div>
+          <div id="home-rows"></div>
+          <div class="sect"><span class="eyebrow">Recent</span>
+            <button class="btn ghost sm" onclick="go('all')">See all</button></div>
+          <div id="home-tx"></div>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="Main">
+        <button class="tab on"><svg class="ic"><use href="#i-home"/></svg>Home</button>
+        <button class="tab" onclick="go('bank')"><svg class="ic"><use href="#i-bank"/></svg>Accounts</button>
+        <button class="tab add" onclick="openAdd()" aria-label="Add expense"><span class="fab"><svg class="ic"><use href="#i-plus"/></svg></span></button>
+        <button class="tab" onclick="go('all')"><svg class="ic"><use href="#i-list"/></svg>Activity</button>
+        <button class="tab" onclick="go('settings')"><svg class="ic"><use href="#i-you"/></svg>You</button>
+      </nav>
+    </section>
+
+    <section class="screen tabbed" id="s-all">
+      <div class="head" style="padding-bottom:var(--s-3)"><h2 class="h-sm" style="margin:0">Activity</h2></div>
+      <div class="body"><div id="all-list"></div></div>
+      <nav class="tabs" aria-label="Main">
+        <button class="tab" onclick="go('home')"><svg class="ic"><use href="#i-home"/></svg>Home</button>
+        <button class="tab" onclick="go('bank')"><svg class="ic"><use href="#i-bank"/></svg>Accounts</button>
+        <button class="tab add" onclick="openAdd()" aria-label="Add expense"><span class="fab"><svg class="ic"><use href="#i-plus"/></svg></span></button>
+        <button class="tab on"><svg class="ic"><use href="#i-list"/></svg>Activity</button>
+        <button class="tab" onclick="go('settings')"><svg class="ic"><use href="#i-you"/></svg>You</button>
+      </nav>
+    </section>
+
+    <section class="screen" id="s-bank">
+      <div class="head"><div class="nav"><button class="icon-btn" onclick="go(back)" aria-label="Back"><svg class="ic"><use href="#i-chev"/></svg></button></div></div>
+      <div class="body">
+        <h1 class="h" id="bank-h">Connecting your bank</h1>
+        <p class="sub" id="bank-sub" style="margin-bottom:var(--s-6)">Up to a minute. You approve it in your bank's own app, then land back here.</p>
+        <div style="border:1px solid var(--line);border-radius:var(--r-4);padding:var(--s-1) var(--s-5);background:var(--surface)" aria-live="polite">
+          <div class="step idle" id="st1"><div class="sdot">1</div><div><div class="t">Reaching your bank</div><div class="d">Through an RBI-licensed account aggregator</div></div></div>
+          <div class="step idle" id="st2"><div class="sdot">2</div><div><div class="t">You approve read-only access</div><div class="d">Happens in your bank's app, not here</div></div></div>
+          <div class="step idle" id="st3"><div class="sdot">3</div><div><div class="t">Fetching the last 90 days</div><div class="d">So your budget starts with real numbers</div></div></div>
+        </div>
+        <div id="bank-out" style="margin-top:var(--s-4)"></div>
+        <div style="height:var(--s-5)"></div>
+      </div>
+      <div class="foot" id="bank-foot"></div>
+    </section>
+
+    <section class="screen" id="s-roll">
+      <div class="head" style="padding-top:var(--s-8)"><div class="eyebrow">Month closed</div></div>
+      <div class="body">
+        <h1 class="h" id="roll-h">Month is done.</h1>
+        <p class="sub" style="margin-bottom:var(--s-6)" id="roll-sub"></p>
+        <div id="roll-body"></div>
+        <div style="height:var(--s-5)"></div>
+      </div>
+      <div class="foot"><button class="btn" onclick="startMonth()">Start next month</button>
+        <button class="link" onclick="go('budget')">Change my budget first</button></div>
+    </section>
+
+    <section class="screen tabbed" id="s-settings">
+      <div class="head" style="padding-bottom:var(--s-3)"><h2 class="h-sm" style="margin:0">You</h2></div>
+      <div class="body">
+        <div class="sect"><span class="eyebrow">Your budget</span></div>
+        <div id="set-rows"></div>
+        <div class="sect"><span class="eyebrow">Data</span></div>
+        <div class="callout" style="margin-bottom:var(--s-3)">
+          <svg class="ic ic-s"><use href="#i-shield"/></svg>
+          <div><b>Your income and rent never leave this device.</b> Connected accounts are read through an RBI-licensed aggregator, which means those transactions pass through our servers. We can't see your login and we can't move money.</div></div>
+        <button class="btn ghost" style="margin-bottom:var(--s-3)" onclick="go('bank')">Manage bank connections</button>
+        <button class="btn danger" onclick="hardReset()">Delete everything and start over</button>
+      </div>
+      <nav class="tabs" aria-label="Main">
+        <button class="tab" onclick="go('home')"><svg class="ic"><use href="#i-home"/></svg>Home</button>
+        <button class="tab" onclick="go('bank')"><svg class="ic"><use href="#i-bank"/></svg>Accounts</button>
+        <button class="tab add" onclick="openAdd()" aria-label="Add expense"><span class="fab"><svg class="ic"><use href="#i-plus"/></svg></span></button>
+        <button class="tab" onclick="go('all')"><svg class="ic"><use href="#i-list"/></svg>Activity</button>
+        <button class="tab on"><svg class="ic"><use href="#i-you"/></svg>You</button>
+      </nav>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span class="m" id="toast-m"></span><button onclick="undo()">Undo</button></div>
+  <div class="homebar"></div>
+
+  <div class="scrim" id="scrim" onclick="closeAdd()"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-label="Add expense">
+    <div class="grip"></div>
+    <div style="text-align:center">
+      <div class="eyebrow" id="sheet-lbl">Amount</div>
+      <div class="num" id="pad-val" role="status" aria-live="polite"
+        style="font-size:var(--fs-7);font-weight:var(--w-hero);letter-spacing:-.05em;margin-top:var(--s-2)">₹0</div>
+      <div id="pad-after" aria-live="polite"
+        style="font-size:var(--fs-2);font-weight:var(--w-body);color:var(--ink-3);margin-top:var(--s-2)">&nbsp;</div>
+    </div>
+    <div class="field" style="margin:var(--s-4) 0 var(--s-3);padding:var(--s-3) var(--s-4)">
+      <span class="lbl" id="lbl-note">What was it for</span>
+      <input class="txt" id="pad-note" aria-labelledby="lbl-note" placeholder="Swiggy, auto, chai…" maxlength="28" oninput="noteCount()">
+      <div class="cnt" id="note-cnt">0 / 28</div></div>
+    <div class="chips" style="margin-bottom:var(--s-3)" role="group" aria-label="Category">
+      <button class="chip on" onclick="setCat('lifestyle',this)">Lifestyle</button>
+      <button class="chip" onclick="setCat('essentials',this)">Bills &amp; groceries</button></div>
+    <div class="pad">
+      <button onclick="pad('1')">1</button><button onclick="pad('2')">2</button><button onclick="pad('3')">3</button>
+      <button onclick="pad('4')">4</button><button onclick="pad('5')">5</button><button onclick="pad('6')">6</button>
+      <button onclick="pad('7')">7</button><button onclick="pad('8')">8</button><button onclick="pad('9')">9</button>
+      <button onclick="pad('00')">00</button><button onclick="pad('0')">0</button>
+      <button onclick="pad('del')" aria-label="Delete"><svg class="ic"><use href="#i-back"/></svg></button></div>
+    <button class="btn" id="pad-save" style="margin-top:var(--s-3)" onclick="saveTx()" disabled>Save expense</button>
+  </div>
+</div>
+</div>
+
+<aside class="notes">
+  <div class="rail"><div class="pips" id="pips"></div><div class="count" id="count">0 / 9</div></div>
+  <div id="slot"><div class="idle">Use the prototype the way you would any app.<br><br>
+    Notes appear here when you reach a decision worth explaining.</div></div>
+  <div class="clock">
+    <label for="day">Advance the month</label>
+    <input type="range" id="day" min="1" max="31" value="1" aria-label="Day of month" oninput="setDay(this.value)">
+    <span class="num" id="dayl">1</span></div>
+  <div class="rest" id="rest">
+    <div class="lead" id="rest-lead">Edge states</div>
+    <div class="opts" id="opts"></div>
+    <button class="reset" onclick="hardReset()">Start over</button></div>
+</aside>
+
+</div>
+<script>
+const now=new Date();
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const S={income:48000,rent:18000,emp:'salaried',split:60,day:1,month:now.getMonth(),
+  year:now.getFullYear(),txns:[],cat:'lifestyle',padv:'',tries:0,carry:0,editing:null};
+let back='home', undoBuf=null, toastT=null;
+
+const dim=()=>new Date(S.year,S.month+1,0).getDate();
+const gp=n=>Math.round(n).toLocaleString('en-IN');      /* grouped digits, no glyph */
+const inr=n=>'₹'+gp(n);
+const $=i=>document.getElementById(i);
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function derive(){
+  const buf=S.emp==='salaried'?0:Math.round(S.income*.10/500)*500;
+  const nonRent=cl(Math.round(S.income*.18/500)*500,6000,15000);
+  const ess=S.rent+nonRent;
+  const disc=Math.max(0,S.income-buf-ess-S.carry);
+  const life=Math.round(disc*(S.split/100)/100)*100;
+  return {buf,nonRent,ess,disc,life,sav:disc-life,strain:S.income?ess/S.income:0};
+}
+const spent=c=>S.txns.filter(t=>t.cat===c).reduce((a,t)=>a+t.amt,0);
+
+function pcts(vals,total){
+  if(!total)return vals.map(()=>0);
+  const raw=vals.map(v=>v/total*100), fl=raw.map(Math.floor);
+  let rem=100-fl.reduce((a,b)=>a+b,0);
+  const order=raw.map((r,i)=>({i,f:r-Math.floor(r)})).sort((a,b)=>b.f-a.f);
+  for(let k=0;k<order.length&&rem>0;k++,rem--)fl[order[k].i]++;
+  return fl;
+}
+
+/* the number moving IS the product — 400ms count, 120ms settle */
+function setBig(el,to){
+  const host=el.closest('.big'), from=el._v;
+  el._v=to;
+  if(from===undefined||from===to||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    el.textContent=gp(to);return;
+  }
+  cancelAnimationFrame(el._raf);
+  const t0=performance.now(), ease=t=>1-Math.pow(1-t,3);
+  (function tick(now){
+    const p=Math.min(1,(now-t0)/400);
+    el.textContent=gp(from+(to-from)*ease(p));
+    if(p<1)el._raf=requestAnimationFrame(tick);
+    else{host.classList.remove('settle');void host.offsetWidth;host.classList.add('settle')}
+  })(t0);
+}
+
+function fmt(el,key){
+  const fromEnd=el.value.length-el.selectionStart;
+  const v=+el.value.replace(/\D/g,'')||0;
+  S[key]=v; el.value=v?v.toLocaleString('en-IN'):'';
+  const p=Math.max(0,el.value.length-fromEnd);
+  try{el.setSelectionRange(p,p)}catch(e){}
+  key==='income'?renderIncome():renderRent();
+  renderSplash();
+}
+
+/* directional transitions: forward slides in from the right, back from the left */
+const ORDER=['splash','income','rent','budget','live','home','all','bank','roll','settings'];
+let prevScreen='splash';
+function go(id){
+  if(id==='bank'){const c=document.querySelector('.screen.on');back=c?c.id.replace('s-',''):'home';
+    if(back==='bank')back='home';resetBank()}
+  const t=$('s-'+id); if(!t)return;
+  const dir=ORDER.indexOf(id)>=ORDER.indexOf(prevScreen)?16:-16;
+  prevScreen=id;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  t.style.setProperty('--dx',dir+'px');
+  t.classList.add('on');
+  const b=t.querySelector('.body'); if(b)b.scrollTop=0;
+  if(id==='splash')renderSplash();
+  if(id==='live')renderLive();
+  if(id==='home')renderHome(); if(id==='all')renderAll();
+  if(id==='settings')renderSettings(); if(id==='roll')renderRoll();
+}
+
+function renderSplash(){
+  const d=derive();
+  setBig($('splash-dig'),d.life);
+  $('splash-meta').textContent=`${dim()} days · about ${inr(d.life/dim())}/day`;
+}
+
+function setEmp(e,b){S.emp=e;document.querySelectorAll('#s-income .chip').forEach(c=>c.classList.remove('on'));
+  b.classList.add('on');renderIncome();renderSplash()}
+function renderIncome(){
+  const low=S.income<1000;
+  $('cta-income').disabled=low;
+  $('why-income').textContent=low?'Enter your monthly income to continue':'';
+  $('emp-note').innerHTML=S.emp==='salaried'
+    ? `<div class="callout"><svg class="ic ic-s"><use href="#i-sync"/></svg><div>Same every month, so the budget can run on autopilot.</div></div>`
+    : `<div class="callout"><svg class="ic ic-s"><use href="#i-sync"/></svg><div>Income moves, so we hold back <b>10% as a buffer</b> before splitting anything. Enter a low-ish month above — a budget that survives a bad month is one you'll actually trust.</div></div>`;
+}
+function renderRent(){
+  const p=S.income?S.rent/S.income:0, n=$('rent-note');
+  if(S.rent===0) n.innerHTML=`<div class="callout"><svg class="ic ic-s"><use href="#i-eq"/></svg><div>No rent. Almost all of this is <b>yours to decide</b>.</div></div>`;
+  else if(p>.45) n.innerHTML=`<div class="callout warn"><svg class="ic ic-s"><use href="#i-alert"/></svg><div>Rent is <b>${Math.round(p*100)}%</b> of take-home. Past 40% the maths gets tight — we'll show you exactly how tight rather than hiding it.</div></div>`;
+  else n.innerHTML=`<div class="callout"><svg class="ic ic-s"><use href="#i-eq"/></svg><div>Rent is <b>${Math.round(p*100)}%</b> of your take-home. Normal for a metro.</div></div>`;
+}
+
+function build(){go('budget');renderBudget()}
+function setSplit(v){S.split=+v;renderBudget(true)}
+function renderBudget(flash){
+  const d=derive();
+  const rows=[
+    {k:'e',n:'Essentials',tag:'Fixed',dsc:`Rent ${inr(S.rent)} + ${inr(d.nonRent)} bills, groceries, transport`,a:d.ess},
+    d.buf?{k:'b',n:'Buffer',tag:'Fixed',dsc:'Held back for a thin month',a:d.buf}:null,
+    S.carry?{k:'b',n:'Carried over',tag:'FIXED',dsc:"Last month's overspend, repaid here",a:S.carry}:null,
+    {k:'l',n:'Lifestyle',dsc:'Eating out, shopping, everything optional',a:d.life},
+    {k:'s',n:'Savings',dsc:'Moved out before you can spend it',a:d.sav}
+  ].filter(Boolean);
+  const P=pcts(rows.map(r=>r.a),S.income);
+  $('budget-rows').innerHTML=rows.map((r,i)=>`<div class="list-row row">
+    <div class="l"><i class="sw sg-${r.k}"></i><div>
+      <div class="rname">${r.n}${r.tag?`<span class="tag">${r.tag}</span>`:''}</div>
+      <div class="rdesc">${r.dsc}</div></div></div>
+    <div><div class="ramt ${flash&&!r.tag?'pulse':''}">${inr(r.a)}</div><div class="rpct">${P[i]}%</div></div></div>`).join('');
+  $('sb-e').style.flexGrow=d.ess; $('sb-b').style.flexGrow=d.buf+S.carry;
+  $('sb-l').style.flexGrow=d.life; $('sb-s').style.flexGrow=d.sav;
+
+  const st=$('strain'), why=$('why-budget');
+  if(d.disc<=0){
+    st.innerHTML=`<div class="callout bad" style="margin-top:var(--s-4)"><svg class="ic ic-s"><use href="#i-alert"/></svg><div>Essentials alone are <b>${inr(d.ess)}</b> against ${inr(S.income)} coming in. There is nothing left to split, so there is no honest budget to show you. Lower the rent figure if it was a typo — otherwise this is a rent or income problem, and no app should dress it up as a spending problem.</div></div>`;
+    $('split').disabled=true; $('cta-budget').disabled=true;
+    why.textContent='Essentials exceed income — nothing to budget';
+  }else if(d.strain>.75){
+    st.innerHTML=`<div class="callout warn" style="margin-top:var(--s-4)"><svg class="ic ic-s"><use href="#i-alert"/></svg><div>Essentials take <b>${Math.round(d.strain*100)}%</b> of your income. That leaves ${inr(d.disc)} for everything else — roughly ${inr(d.disc/dim())} a day. It works, but there is no slack in it.</div></div>`;
+    $('split').disabled=false; $('cta-budget').disabled=false; why.textContent='';
+  }else{
+    st.innerHTML=`<div class="callout" style="margin-top:var(--s-4)"><svg class="ic ic-s"><use href="#i-check"/></svg><div>Adds up to <b>${inr(S.income)}</b> exactly. Move the slider and the two bottom lines trade off — essentials never move.</div></div>`;
+    $('split').disabled=false; $('cta-budget').disabled=false; why.textContent='';
+  }
+}
+
+function renderLive(){
+  const d=derive();
+  $('live-h').textContent=`Your ${MN[S.month]} budget is live.`;
+  setBig($('live-dig'),d.life);
+  $('live-meta').textContent=`${dim()} days · about ${inr(d.life/dim())}/day`;
+}
+function commit(){renderLive();go('live')}
+function setDay(v){S.day=+v;$('dayl').textContent=v;
+  if(+v>=dim()&&S.txns.length){go('roll');return} renderHome()}
+
+function renderHome(){
+  const d=derive(), ls=spent('lifestyle'), bs=spent('essentials');
+  const left=d.life-ls, daysLeft=Math.max(1,dim()-S.day+1);
+  const used=d.life?ls/d.life:0, elapsed=S.day/dim();
+  const hero=$('home-hero');
+  let ink='var(--ink)', line='', lbl='Safe to spend', expl;
+  if(left<0){
+    ink='var(--bad)'; line='var(--bad)'; lbl='Over budget';
+    expl=`${inr(-left)} past lifestyle with ${daysLeft} days to go. Essentials and savings are untouched. Either pull it from savings now, or it comes out of next month.`;
+  }else if(used>elapsed+.15){
+    ink='var(--ink)'; line='var(--warn)';
+    const out=Math.min(dim(),Math.round(S.day/Math.max(used,.001)));
+    expl=`You've used ${Math.round(used*100)}% of lifestyle and ${Math.round(elapsed*100)}% of the month has gone. At this pace you run out around day ${out}.`;
+  }else expl='Rent, bills and savings are already committed below. This is the part that\'s freely yours.';
+  hero.style.setProperty('--state',line); hero.style.setProperty('--state-ink',ink);
+  hero.style.setProperty('--fill',cl(1-elapsed,0,1));
+  $('home-lbl').textContent=lbl;
+  setBig($('home-dig'),Math.abs(left));
+  $('home-meta').textContent=`${daysLeft} ${daysLeft===1?'day':'days'} left · ${left<0?'—':'about '+inr(left/daysLeft)+'/day'}`;
+  $('home-expl').textContent=expl;
+  $('home-month').textContent=MN[S.month];
+
+  const has=S.txns.length>0;
+  $('home-empty').innerHTML=has?'':`<div class="empty" style="margin-top:var(--s-4)">
+    <h4>Nothing logged yet</h4><p>Add one expense and the number above starts working. Takes about four seconds.</p>
+    <button class="btn" onclick="openAdd()">Add an expense</button></div>`;
+  $('home-full').style.display=has?'block':'none';
+  if(!has)return;
+
+  $('pace-lbl').textContent=`Day ${S.day} of ${dim()}`;
+  const committed=[
+    S.rent?{n:'Rent',a:S.rent,d:'Fixed, already gone'}:null,
+    d.buf?{n:'Buffer',a:d.buf,d:'Held back for a thin month'}:null,
+    S.carry?{n:'Carried over',a:S.carry,d:"Last month's overspend"}:null,
+    {n:'Savings',a:d.sav,d:'Moved out before you can spend it'}
+  ].filter(Boolean);
+  $('home-committed').innerHTML=committed.map(c=>`<div class="list-row crow">
+    <div><div class="cn">${c.n}</div><div class="cd">${c.d}</div></div>
+    <div class="ca">${inr(c.a)}</div></div>`).join('');
+
+  const live=[{n:'Bills',s:bs,b:d.nonRent},{n:'Lifestyle',s:ls,b:d.life}];
+  $('home-rows').innerHTML=live.map(r=>{
+    const p=r.b?r.s/r.b:0, over=p>1, c=over?'bad':(p>elapsed+.15?'warn':'');
+    return `<button class="list-row prow" onclick="openAdd()"><div class="pn">${r.n}</div>
+      <div class="track"><i class="${c}" style="width:${cl(p*100,0,100)}%"></i><span class="pace" style="left:${elapsed*100}%"></span></div>
+      <div class="pv ${over?'over':''}"><b>${inr(r.s)}</b> / ${inr(r.b)}</div></button>`}).join('');
+  $('home-tx').innerHTML=S.txns.slice().reverse().slice(0,4).map(txRow).join('');
+}
+/* tap the row to correct a mistyped amount — undo covers the accident, not the fix */
+const txRow=t=>`<button class="list-row tx" onclick="openAdd('${t.id}')">
+  <div><div class="n">${t.note||(t.cat==='lifestyle'?'Cash spend':'Bill or groceries')}</div>
+  <div class="c">${t.cat==='lifestyle'?'Lifestyle':'Bills & groceries'} · day ${t.day}</div></div>
+  <div style="display:flex;align-items:center;gap:var(--s-1)"><div class="a">${inr(t.amt)}</div>
+  <span class="del" role="button" aria-label="Delete expense"
+    onclick="event.stopPropagation();delTx('${t.id}')"><svg class="ic ic-s"><use href="#i-plus"/></svg></span></div></button>`;
+
+function renderAll(){
+  $('all-list').innerHTML=S.txns.length
+    ? S.txns.slice().reverse().map(txRow).join('')
+    : `<div class="empty" style="margin-top:var(--s-5)"><h4>No activity yet</h4><p>Everything you log shows up here, newest first.</p><button class="btn" onclick="openAdd()">Add an expense</button></div>`;
+}
+function renderSettings(){
+  const d=derive();
+  $('set-rows').innerHTML=[['Monthly take-home',inr(S.income)],['Rent',inr(S.rent)],
+    ['Income type',S.emp==='salaried'?'Salaried':'Variable'],['Lifestyle',inr(d.life)],['Savings',inr(d.sav)]]
+    .map(([k,v])=>`<div class="list-row tx" onclick="go('income')"><div class="n">${k}</div><div class="a">${v}</div></div>`).join('');
+}
+function renderRoll(){
+  const d=derive(), ls=spent('lifestyle'), left=d.life-ls;
+  $('roll-h').textContent=`${MN[S.month]} is done.`;
+  $('roll-sub').textContent=left>=0
+    ? `You stayed inside your lifestyle budget with ${inr(left)} unspent.`
+    : `You went ${inr(-left)} past lifestyle. Here's what that means for next month.`;
+  $('roll-body').innerHTML=left>=0
+    ? `<div class="hero"><div class="eyebrow">Left over</div><div class="big num"><span class="cur">₹</span>${gp(left)}</div>
+       <div class="meta">Plus ${inr(d.sav)} saved as planned</div>
+       <div class="expl">Leftover lifestyle doesn't roll forward by default — it goes to savings, so a good month compounds instead of quietly raising next month's ceiling.</div></div>
+       <div class="callout" style="margin-top:var(--s-4)"><svg class="ic ic-s"><use href="#i-check"/></svg><div>Next month starts at <b>${inr(d.life)}</b> again. Change it any time in You.</div></div>`
+    : `<div class="hero" style="--state:var(--bad);--state-ink:var(--bad)"><div class="eyebrow">Overspent</div>
+       <div class="big num"><span class="cur">₹</span>${gp(-left)}</div><div class="meta">Lifestyle only — savings were not touched</div>
+       <div class="expl">We carry this into next month as a fixed line rather than silently shrinking your spending. You'll see exactly what you're repaying and when it's cleared.</div></div>
+       <div class="callout bad" style="margin-top:var(--s-4)"><svg class="ic ic-s"><use href="#i-alert"/></svg><div>Next month's lifestyle drops to <b>${inr(Math.max(0,d.life+left))}</b> until it's repaid.</div></div>`;
+}
+function startMonth(){
+  const d=derive(), left=d.life-spent('lifestyle');
+  S.carry=left<0?-left:0; S.txns=[]; S.day=1;
+  S.month=(S.month+1)%12; if(S.month===0)S.year++;
+  $('day').value=1; $('day').max=dim(); $('dayl').textContent=1;
+  go('home');
+}
+
+function noteCount(){
+  const n=$('pad-note').value.length, el=$('note-cnt');
+  el.textContent=`${n} / 28`; el.classList.toggle('near',n>=24);
+}
+function openAdd(id){
+  const t=id?S.txns.find(x=>x.id===id):null;
+  S.editing=t?t.id:null;
+  S.padv=t?String(t.amt):''; S.cat=t?t.cat:'lifestyle';
+  $('pad-note').value=t?t.note:'';
+  $('sheet-lbl').textContent=t?'Edit amount':'Amount';
+  $('pad-save').textContent=t?'Save changes':'Save expense';
+  document.querySelectorAll('#sheet .chip').forEach((c,i)=>
+    c.classList.toggle('on',i===(S.cat==='lifestyle'?0:1)));
+  noteCount();renderPad();$('scrim').classList.add('on');$('sheet').classList.add('on');
+}
+function closeAdd(){$('scrim').classList.remove('on');$('sheet').classList.remove('on');S.editing=null}
+function setCat(c,b){S.cat=c;document.querySelectorAll('#sheet .chip').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');renderPad()}
+function pad(k){k==='del'?S.padv=S.padv.slice(0,-1):(S.padv.length<7&&(S.padv=(S.padv+k).replace(/^0+/,'')));renderPad()}
+function renderPad(){
+  const v=+S.padv||0, d=derive();
+  $('pad-val').textContent=inr(v);
+  const label=S.cat==='lifestyle'?'lifestyle':'bills';
+  const budget=S.cat==='lifestyle'?d.life:d.nonRent;
+  const already=spent(S.cat)-(S.editing?(S.txns.find(t=>t.id===S.editing)?.amt||0):0);
+  const left=budget-already-v, el=$('pad-after');
+  if(!v){el.style.color='var(--ink-3)';el.textContent=`${inr(Math.max(0,budget-already))} left in ${label}`}
+  else if(left<0){el.style.color='var(--bad)';el.textContent=`Puts you ${inr(-left)} over ${label}`}
+  else{el.style.color='var(--ink-3)';el.textContent=`Leaves ${inr(left)} in ${label}`}
+  $('pad-save').disabled=!v;
+}
+function saveTx(){
+  const v=+S.padv; if(!v)return;
+  const note=$('pad-note').value.trim();
+  if(S.editing){
+    const t=S.txns.find(x=>x.id===S.editing), was={...t};
+    t.amt=v;t.cat=S.cat;t.note=note;
+    undoBuf={t:was,act:'edit'};closeAdd();renderHome();renderAll();showToast('Expense updated');
+  }else{
+    const t={id:'t'+Date.now()+Math.random().toString(36).slice(2,5),amt:v,cat:S.cat,day:S.day,note};
+    S.txns.push(t);undoBuf={t,act:'add'};closeAdd();renderHome();renderAll();showToast(`${inr(v)} logged`);
+  }
+}
+function delTx(id){
+  const i=S.txns.findIndex(t=>t.id===id); if(i<0)return;
+  undoBuf={t:S.txns[i],act:'del'}; S.txns.splice(i,1); renderHome(); renderAll();
+  showToast('Expense removed');
+}
+function undo(){
+  if(!undoBuf)return;
+  if(undoBuf.act==='add'){const i=S.txns.findIndex(t=>t.id===undoBuf.t.id);if(i>=0)S.txns.splice(i,1)}
+  else if(undoBuf.act==='edit'){const t=S.txns.find(x=>x.id===undoBuf.t.id);if(t)Object.assign(t,undoBuf.t)}
+  else S.txns.push(undoBuf.t);
+  undoBuf=null;hideToast();renderHome();renderAll();
+}
+function showToast(m){$('toast-m').textContent=m;$('toast').classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(hideToast,4500)}
+function hideToast(){$('toast').classList.remove('on')}
+
+function resetBank(){
+  ['st1','st2','st3'].forEach(i=>{const s=$(i),d=s.querySelector('.sdot');
+    s.className='step idle';d.className='sdot';d.textContent=i.slice(-1)});
+  $('st1').querySelector('.d').textContent='Through an RBI-licensed account aggregator';
+  $('st2').querySelector('.d').textContent="Happens in your bank's app, not here";
+  $('st3').querySelector('.d').textContent='So your budget starts with real numbers';
+  $('bank-out').innerHTML='';
+  $('bank-h').textContent='Connecting your bank';
+  $('bank-sub').textContent="Up to a minute. You approve it in your bank's own app, then land back here.";
+  $('bank-foot').innerHTML=`<button class="btn" onclick="runBank()">Start</button>
+    <button class="link" onclick="go(back)">Not now — I'll type it in</button>`;
+}
+function stepState(id,st,txt){
+  const s=$(id),d=s.querySelector('.sdot');
+  s.className='step'; d.className='sdot '+st;
+  d.innerHTML=st==='done'?'<svg class="ic ic-s" style="width:12px;height:12px;flex:0 0 12px"><use href="#i-check"/></svg>'
+    :st==='fail'?'!':id.slice(-1);
+  if(txt)s.querySelector('.d').textContent=txt;
+}
+function runBank(){
+  S.tries++; const fail=S.tries%2===0;
+  $('bank-foot').innerHTML=`<button class="btn" disabled>Working…</button>`;
+  $('bank-out').innerHTML=`<div class="sk" style="height:52px"></div>`;
+  stepState('st1','doing');
+  setTimeout(()=>{stepState('st1','done','Connected');stepState('st2','doing','Waiting for you to approve')},1100);
+  setTimeout(()=>{
+    $('bank-out').innerHTML='';
+    if(fail){
+      stepState('st2','fail',"Consent wasn't approved in time");
+      $('bank-h').textContent='Consent timed out';
+      $('bank-sub').textContent='Your bank closed the request before it was approved. Nothing was shared and nothing was charged.';
+      $('bank-out').innerHTML=`<div class="callout bad"><svg class="ic ic-s"><use href="#i-alert"/></svg><div>This is almost always the three-minute window on the bank's side, not your connection. Try again and approve on the first screen you see.</div></div>`;
+      $('bank-foot').innerHTML=`<button class="btn" onclick="resetBank();runBank()">Try again</button>
+        <button class="link" onclick="go(back)">Skip — my budget works without it</button>`;
+    }else{
+      stepState('st2','done','Approved, read-only');
+      stepState('st3','doing','Reading 90 days of transactions');
+      setTimeout(()=>{
+        stepState('st3','done','2 of 3 accounts connected');
+        $('bank-h').textContent='Two accounts connected';
+        $('bank-sub').textContent='Spending on these two now tracks itself. The third bank is down at their end.';
+        $('bank-out').innerHTML=`<div class="callout wait"><svg class="ic ic-s"><use href="#i-sync"/></svg><div>HDFC and ICICI are live. Axis is unavailable right now — we'll retry on our own and tell you when it's in. Keep logging Axis spend by hand until then.</div></div>`;
+        $('bank-foot').innerHTML=`<button class="btn" onclick="go('home')">See my budget</button>`;
+      },1700);
+    }
+  },2700);
+}
+function toggleOffline(){$('offline').classList.toggle('on')}
+
+/* ══════════ PROGRESSIVE DISCLOSURE ══════════ */
+let scr='splash', bank='idle', logged=false, sheet=false;
+const found=new Set();
+
+const CORE=[
+{id:'thesis',at:()=>scr==='splash',kick:'The premise',t:'A balance is a lie',
+ b:["Every banking app opens with your balance. On the 3rd of the month that number still contains rent, still contains the bills, still contains whatever you meant to save.",
+    "It tells you you're rich four days before you're not. <b>This opens with what's left after everything already spoken for.</b>",
+    "The figure on that card is labelled <b>Example</b>, because you haven't given it anything yet. Showing a stranger's number as if it were yours is exactly the lie the product is arguing against."]},
+{id:'rough',at:()=>scr==='income',kick:'First question',t:'Ask for a rough number',
+ b:["Take-home after tax. The copy says a rough number is fine, and means it — nobody's income is the same to the rupee.",
+    "A budget built on false precision breaks the first month reality disagrees with it, and then it's abandoned."]},
+{id:'rentq',at:()=>scr==='rent',kick:'Second question',t:'Only two questions, and this is the harder one',
+ b:["Rent is the one figure everybody knows exactly, and it determines most of the budget. Asking it second means the whole model is built after two inputs.",
+    "Every additional onboarding question costs users. Two is the floor at which this can produce anything honest."]},
+{id:'derived',at:()=>scr==='budget'&&derive().disc>0&&derive().strain<=.75,kick:'The output',t:'Derived, not prescribed',
+ b:["50/30/20 is a rule invented for a different economy. Essentials come from <b>the rent actually entered</b> plus a stated bills estimate — both figures are printed on the row, so no number appears without a visible parent.",
+    "One slider trades lifestyle against savings. Essentials never move, because in real life they can't."]},
+{id:'single',at:()=>scr==='live',kick:'What it collapses to',t:'One number to carry',
+ b:["Everything reduces to a figure and a daily rate. Not a dashboard, not six charts — one number small enough to hold in your head while standing at a counter deciding something.",
+    "It counts up rather than cutting. The moment the number moves is the product, so the transition is the interaction, not decoration."]},
+{id:'blank',at:()=>scr==='home'&&!S.txns.length,kick:'Empty state',t:'An empty screen is an instruction',
+ b:["The number is live but nothing is logged yet, so the screen names the single next action and how long it takes.",
+    "\"Nothing logged yet\" with no path forward is where most trackers lose the user in week one."]},
+{id:'preview',at:()=>sheet,kick:'Before you commit',t:'Consequence shown at the point of entry',
+ b:["The line under the amount updates as you type: what this spend <b>leaves</b>, or how far over it puts you.",
+    "The decision gets made while the keypad is open, not on a summary afterwards. Showing it after is showing it too late to matter."]},
+{id:'undo',at:()=>logged,kick:'After the action',t:'Nobody reads the hundredth dialog',
+ b:["A confirmation step inside a repeated action stops being a safety mechanism within a week. It becomes a reflex tap.",
+    "<b>Undo works whether or not attention was being paid.</b> And a row can be tapped to correct the amount — undo covers the accident, editing covers the typo. They're different problems."]},
+{id:'committed',at:()=>scr==='home'&&S.txns.length>0,kick:'Two kinds of money',t:'A bar implies you can still influence it',
+ b:["Rent left the day the month opened. Savings moved before they could be touched. Neither gets a progress bar, because a bar is a promise the number is still in play.",
+    "<b>Only Bills and Lifestyle move, so only they get bars.</b> The tick on each is where you'd be if you were exactly on pace today."]}
+];
+
+const EDGE=[
+{id:'impossible',at:()=>scr==='budget'&&derive().disc<=0,kick:'The refusal',t:'When there is no honest answer',
+ b:["Rent this high against this income leaves nothing to split. Most budgeting apps would still draw a pie chart and suggest cutting back on coffee.",
+    "<b>This refuses and disables the controls</b>, and states why under the button rather than greying it out silently. A disabled control with no reason is a dead end."]},
+{id:'strained',at:()=>scr==='budget'&&derive().disc>0&&derive().strain>.75,kick:'Tight, but real',t:'Honest about having no slack',
+ b:["Essentials are eating most of the income. It still works, so it renders — but it says out loud there's no margin, and gives the daily figure so that's concrete rather than a feeling."]},
+{id:'renthigh',at:()=>scr==='rent'&&S.income&&S.rent/S.income>.45,kick:'Rent load',t:'State the number, don\'t soften it',
+ b:["Past roughly 40% of take-home the arithmetic gets tight. The screen states the percentage rather than wrapping it in an encouraging tone. The user already knows, and pretending otherwise costs trust the product hasn't earned yet."]},
+{id:'variable',at:()=>scr==='income'&&S.emp!=='salaried',kick:'Income that moves',t:'Budget for the bad month',
+ b:["Variable income holds back <b>10% as a buffer</b> before anything is split.",
+    "The prompt asks for a low-ish month on purpose. A budget built on a good month breaks the first time one goes wrong, which is exactly when it needs to still be true."]},
+{id:'pace',at:()=>{if(scr!=='home'||!S.txns.length)return false;const d=derive();const l=spent('lifestyle');
+  return l<=d.life&&l/Math.max(d.life,1)>S.day/dim()+.15},kick:'When it turns',t:'Colour has to earn its place',
+ b:["Gold isn't decoration. The screen already has enough to compute <b>which day the money runs out</b>, so it says that instead of a vague warning.",
+    "Primary actions are white, so gold is free to mean one thing: this needs your attention. Nothing sits in colour at rest. That's what keeps gold readable."]},
+{id:'over',at:()=>scr==='home'&&S.txns.length>0&&derive().life-spent('lifestyle')<0,kick:'Past the line',
+ t:'Say what it costs, offer the two exits',
+ b:["The label changes from Safe to spend to Over budget, and the copy names the only two real options: pull it from savings now, or carry it.",
+    "It also states what was <b>not</b> touched. Essentials and savings are intact, and knowing that is the difference between a bad month and a panic."]},
+{id:'bankfail',at:()=>bank==='fail',kick:'The path nobody prototypes',t:'Failure written from the user\'s side',
+ b:["The consent window closes in about three minutes and people genuinely miss it. This is the common case, not the exception.",
+    "The message names whose side it happened on, confirms nothing was shared, and offers a way forward that doesn't need the bank at all."]},
+{id:'bankpart',at:()=>bank==='part',kick:'Partial success',t:'Two of three is a real state',
+ b:["Aggregator connections routinely half-work. Calling it success hides a gap the user finds later at the worst moment; calling it failure throws away two working accounts.",
+    "So it names which banks are live, which isn't, and what to do meanwhile."]},
+{id:'carry',at:()=>scr==='roll'&&derive().life-spent('lifestyle')<0,kick:'Month close',t:'Visible debt beats a silent cut',
+ b:["The overspend carries into next month as <b>a line you can see</b>, not a quietly reduced allowance.",
+    "Silently shrinking the number is how these apps lose people. The ceiling moves, they can feel it, they can't find why, and they stop trusting the one figure the product rests on."]}
+];
+
+function evalNotes(){
+  for(const n of CORE.concat(EDGE)){
+    if(found.has(n.id))continue;
+    let ok=false; try{ok=n.at()}catch(e){}
+    if(ok){found.add(n.id);paint(n);break}
+  }
+  renderRail();renderRest();
+}
+const coreDone=()=>CORE.every(n=>found.has(n.id));
+function paint(n){
+  $('slot').innerHTML=`<article class="card in"><div class="kicker">${n.kick}</div>
+    <h3>${n.t}</h3>${n.b.map(p=>`<p>${p}</p>`).join('')}</article>`;
+}
+function renderRail(){
+  const k=CORE.filter(n=>found.has(n.id)).length, e=EDGE.filter(n=>found.has(n.id)).length;
+  $('pips').innerHTML=CORE.map(n=>`<i class="${found.has(n.id)?'lit':''}"></i>`).join('');
+  $('count').textContent=coreDone()?`Flow complete · ${e}/${EDGE.length} edge states`:`${k} / ${CORE.length}`;
+}
+const REACH=[
+ {id:'impossible',label:'Rent it can\'t absorb',go:()=>{S.rent=40000;sync();nav('budget')}},
+ {id:'renthigh',label:'Rent near the limit',go:()=>{S.rent=23000;sync();nav('rent')}},
+ {id:'variable',label:'Income that varies',go:()=>{S.emp='freelance';sync();nav('income')}},
+ {id:'pace',label:'Spending too fast',go:()=>{seedSpend(0);sync();nav('home')}},
+ {id:'over',label:'Past the line',go:()=>{seedSpend(1);sync();nav('home')}},
+ {id:'bankfail',label:'Bank consent fails',go:()=>{S.tries=1;sync();nav('bank')}},
+ {id:'carry',label:'End of a bad month',go:()=>{seedSpend(1);S.day=dim();sync();nav('roll')}}
+];
+function renderRest(){
+  const left=REACH.filter(r=>!found.has(r.id)), show=coreDone()&&left.length;
+  $('rest').classList.toggle('on',!!show);
+  $('rest-lead').textContent=`Edge states · ${left.length} left`;
+  if(show)$('opts').innerHTML=left.map(r=>
+    `<button onclick="REACH.find(x=>x.id==='${r.id}').go()">${r.label}</button>`).join('');
+}
+function seedSpend(heavy){
+  S.rent=18000;S.emp='salaried';S.carry=0;S.day=heavy?24:16;
+  S.txns=heavy
+   ?[{id:'x1',amt:420,cat:'lifestyle',day:2,note:'Swiggy'},
+     {id:'x2',amt:2400,cat:'essentials',day:3,note:'Groceries'},
+     {id:'x3',amt:6800,cat:'lifestyle',day:8,note:'Headphones'},
+     {id:'x4',amt:4900,cat:'lifestyle',day:12,note:'Weekend trip'},
+     {id:'x5',amt:1100,cat:'essentials',day:15,note:'Electricity'},
+     {id:'x6',amt:2600,cat:'lifestyle',day:21,note:'Concert'}]
+   :[{id:'y1',amt:420,cat:'lifestyle',day:2,note:'Swiggy'},
+     {id:'y2',amt:2400,cat:'essentials',day:4,note:'Groceries'},
+     {id:'y3',amt:5200,cat:'lifestyle',day:7,note:'Shoes'},
+     {id:'y4',amt:2900,cat:'lifestyle',day:11,note:'Dinner out'}];
+}
+function sync(){
+  $('f-income').value=S.income.toLocaleString('en-IN');
+  $('f-rent').value=S.rent.toLocaleString('en-IN');
+  $('split').value=S.split;$('day').max=dim();$('day').value=S.day;$('dayl').textContent=S.day;
+  document.querySelectorAll('#s-income .chip').forEach(c=>{
+    const w=c.textContent.trim().toLowerCase();
+    c.classList.toggle('on',(S.emp==='salaried'&&w==='salaried')||
+      (S.emp==='freelance'&&w==='freelance')||(S.emp==='varies'&&w.startsWith('it')));
+  });
+  renderIncome();renderRent();renderSplash();renderBudget();renderLive();renderHome();renderAll();
+}
+function hardReset(){location.reload()}
+
+const nav=go;
+go=function(id){scr=id;if(id==='bank')bank='idle';nav(id);evalNotes()};
+const _split=setSplit; setSplit=v=>{_split(v);evalNotes()};
+const _save=saveTx;    saveTx=()=>{_save();logged=true;sheet=false;evalNotes()};
+const _open=openAdd;   openAdd=id=>{_open(id);sheet=true;evalNotes()};
+const _close=closeAdd; closeAdd=()=>{_close();sheet=false};
+const _pad=pad;        pad=k=>{_pad(k);evalNotes()};
+const _fmt=fmt;        fmt=(el,k)=>{_fmt(el,k);evalNotes()};
+const _emp=setEmp;     setEmp=(e,b)=>{_emp(e,b);evalNotes()};
+const _day=setDay;     setDay=v=>{_day(v);evalNotes()};
+const _step=stepState; stepState=(id,st,t)=>{_step(id,st,t);
+  if(id==='st2'&&st==='fail')bank='fail';
+  if(id==='st3'&&st==='done')bank='part';evalNotes()};
+
+$('day').max=dim();
+renderIncome();renderRent();renderSplash();renderBudget();renderLive();renderHome();
+evalNotes();
+</script>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Collections Copilot · review queue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+/* Mobbin design system. Saans is licensed; Inter's variable axis carries its 456 weight. */
+:root{
+  --font:'Saans','Inter',-apple-system,'Segoe UI',sans-serif;
+  --page:#FFFFFF; --block:#F7F7F7; --block-2:#EEEEEE;
+  --ink:#141414; --body:#707070; --soft:#878787; --faint:#ADADAD;
+  --line:#EDEDED; --fill:rgba(64,64,64,.08); --blue:#0066FF;
+  --t-12:12px; --t-14:14px; --t-16:16px; --t-20:20px;
+  --w:456; --w-s:600; --ls:.2px;
+  --r:8px; --pill:9999px; --h:44px;
+  --shadow:0 1px 2px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-14);
+  line-height:1.43;font-weight:var(--w);letter-spacing:var(--ls);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;letter-spacing:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+/* nav */
+.nav{position:sticky;top:12px;z-index:30;margin:12px 24px 0;min-height:60px;padding:8px 8px 8px 24px;
+  border-radius:var(--pill);background:rgba(237,237,237,.72);backdrop-filter:blur(16px);
+  display:flex;align-items:center;gap:16px}
+.brand{font-weight:var(--w-s);font-size:var(--t-16);white-space:nowrap}
+.brand small{display:block;font-size:var(--t-12);color:var(--body);font-weight:var(--w)}
+.tabs{display:flex;gap:4px;margin-left:8px}
+.tab{height:36px;padding:0 14px;border-radius:var(--pill);font-weight:var(--w-s);color:var(--body)}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--ink);color:#fff}
+.tab .ct{margin-left:6px;font-size:var(--t-12);opacity:.8}
+.spacer{flex:1}
+.search{height:36px;width:260px;border:0;border-radius:var(--pill);background:#fff;padding:0 14px}
+.search::placeholder{color:var(--soft)}
+.demo{font-size:var(--t-12);font-weight:var(--w-s);background:var(--fill);border-radius:var(--r);padding:4px 8px;white-space:nowrap}
+
+.wrap{max-width:1360px;margin:0 auto;padding:28px 24px 120px}
+.view[hidden]{display:none}
+
+/* queue */
+.qgrid{display:grid;grid-template-columns:216px minmax(0,1fr);gap:24px;align-items:start}
+.rail{background:var(--block);border-radius:var(--r);padding:20px;position:sticky;top:92px}
+.rail h3{font-size:var(--t-16);font-weight:var(--w-s);display:flex;justify-content:space-between;align-items:baseline}
+.ftoggle{font-size:var(--t-16);font-weight:var(--w-s);color:var(--ink)!important;pointer-events:none}
+.ftoggle span{color:var(--body);font-weight:var(--w);margin-left:6px}
+@media(max-width:860px){.ftoggle{pointer-events:auto}}
+.rail h3 button{font-size:var(--t-12);color:var(--blue);font-weight:var(--w-s)}
+.fgroup{margin-top:20px}
+.fgroup .k{font-size:var(--t-12);font-weight:var(--w-s);color:var(--body);margin-bottom:6px}
+.frow{display:flex;align-items:center;gap:10px;width:100%;padding:6px 0;text-align:left;font-size:var(--t-14)}
+.frow .c{margin-left:auto;color:var(--body)}
+.frow input{width:16px;height:16px;accent-color:var(--ink)}
+.qhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.qhead h1{font-size:var(--t-20);font-weight:var(--w-s);line-height:1.3}
+.qhead p{color:var(--body)}
+.hint{background:var(--block);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:center}
+.hint b{font-weight:var(--w-s)}
+.hint .x{margin-left:auto;color:var(--body);font-weight:var(--w-s)}
+.selbanner{background:var(--block-2);border-radius:var(--r);padding:10px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.linkbtn{color:var(--blue);font-weight:var(--w-s)}
+.linkbtn:hover{text-decoration:underline}
+.tablewrap{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;min-width:860px}
+th{text-align:left;font-size:var(--t-12);font-weight:var(--w-s);color:var(--body);padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.row{cursor:pointer}
+tr.row:hover td{background:var(--block)}
+tr.row.sel td{background:#F2F2F2}
+td.cb,th.cb{width:40px;padding-right:0}
+td.cb input,th.cb input{width:16px;height:16px;accent-color:var(--ink);cursor:pointer}
+.nm{font-weight:var(--w-s)}
+.sub{font-size:var(--t-12);color:var(--body)}
+.r{text-align:right}
+.dpd-hi{font-weight:var(--w-s)}
+.prio{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--pill);font-size:var(--t-12);font-weight:var(--w-s);white-space:nowrap}
+.prio::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+/* the only colour in the product, added deliberately: urgency must be seen without reading */
+.p-act{background:#FDECEA;color:#B3261E}
+.p-week{background:#FFF4DB;color:#8A5A00}
+.p-mon{color:var(--body);padding-left:0}
+.p-mon::before{display:none}
+.why{font-size:var(--t-12);color:var(--body);margin-top:3px;white-space:nowrap}
+.stxt{font-weight:var(--w-s);white-space:nowrap}
+.hint .x{white-space:nowrap}
+td.la{white-space:nowrap}
+.sortsel{height:36px;border:0;border-radius:var(--pill);background:var(--fill);padding:0 14px;font-weight:var(--w-s)}
+.badge{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:var(--pill);font-size:var(--t-12);font-weight:var(--w-s);white-space:nowrap}
+.b-new{box-shadow:inset 0 0 0 1px var(--faint)}
+.b-progress{background:var(--block-2)}
+.b-ptp{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.b-broken{background:var(--ink);color:#fff}
+.b-offer{box-shadow:inset 0 0 0 1px var(--faint);border-radius:var(--r)}
+.b-settled{color:var(--body)}
+.flag{font-size:var(--t-12);font-weight:var(--w-s);background:var(--ink);color:#fff;border-radius:var(--pill);padding:2px 8px;margin-left:6px}
+.flag.thin{background:var(--block-2);color:var(--ink)}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:var(--body);flex-wrap:wrap;gap:12px}
+.pager .pg{display:flex;gap:6px}
+.pill{height:var(--h);padding:0 16px;border-radius:var(--pill);font-weight:var(--w-s);font-size:var(--t-16);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.pill.sm{height:36px;font-size:var(--t-14);padding:0 14px}
+.pill.dark{background:var(--ink);color:#fff}
+.pill.soft{background:var(--fill);color:var(--ink)}
+.pill.white{background:#fff;color:var(--ink)}
+.pill:disabled{opacity:.4;cursor:not-allowed}
+.empty{padding:48px 20px;text-align:center;color:var(--body)}
+.empty b{display:block;color:var(--ink);font-size:var(--t-16);font-weight:var(--w-s);margin-bottom:4px}
+
+/* bulk bar */
+.bulk{position:fixed;left:50%;bottom:24px;transform:translate(-50%,calc(100% + 48px));visibility:hidden;z-index:40;background:var(--ink);color:#fff;
+  border-radius:var(--pill);padding:8px 8px 8px 24px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 12px 32px rgba(0,0,0,.24);transition:transform .25s cubic-bezier(.2,0,0,1),visibility .25s;max-width:calc(100vw - 32px)}
+.bulk.on{transform:translate(-50%,0);visibility:visible}
+.bulk .ct{font-weight:var(--w-s);white-space:nowrap}
+.bulk .ct small{display:block;font-size:var(--t-12);font-weight:var(--w);opacity:.7}
+.bulk .pill.ghost{background:rgba(255,255,255,.12);color:#fff}
+.bulk .pill.white{background:#fff;color:var(--ink)}
+.bulk .x{width:36px;height:36px;border-radius:var(--pill);color:#fff;opacity:.7}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,calc(100% + 48px));visibility:hidden;z-index:50;background:var(--ink);color:#fff;
+  border-radius:var(--pill);padding:8px 8px 8px 24px;display:flex;align-items:center;gap:16px;
+  box-shadow:0 12px 32px rgba(0,0,0,.24);transition:transform .25s cubic-bezier(.2,0,0,1),visibility .25s;max-width:calc(100vw - 32px)}
+.toast.on{transform:translate(-50%,0);visibility:visible}
+.toast .m small{display:block;font-size:var(--t-12);opacity:.7}
+/* review */
+.steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 6px;border-radius:var(--pill);background:var(--block);color:var(--body);font-weight:var(--w-s)}
+.step .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:var(--t-12);background:#fff;color:var(--body)}
+.step.now{background:var(--ink);color:#fff}
+.step.now .n{background:#fff;color:var(--ink)}
+.step.done{color:var(--ink)}
+.step.done .n{background:var(--ink);color:#fff}
+.coach{background:var(--block-2);border-radius:var(--r);padding:16px 20px;margin-bottom:20px;display:flex;gap:16px;align-items:flex-start}
+.coach b{font-weight:var(--w-s);display:block;font-size:var(--t-16);margin-bottom:4px}
+.coach p{color:var(--ink);max-width:72ch}
+.coach .pill{margin-left:auto;flex:none}
+.rgrid{display:grid;grid-template-columns:240px minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.list{background:var(--block);border-radius:var(--r);padding:12px;position:sticky;top:92px}
+.list h3{font-size:var(--t-14);font-weight:var(--w-s);padding:4px 8px 10px;display:flex;justify-content:space-between}
+.list h3 span{color:var(--body);font-weight:var(--w)}
+.li{display:block;width:100%;text-align:left;padding:10px;border-radius:var(--r)}
+.li:hover{background:#fff}
+.li.on{background:#fff;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.li .nm{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.li .nm>span:first-child{min-width:0;overflow-wrap:anywhere}
+.li .nm .num{flex:none}
+.li .st{font-size:var(--t-12);color:var(--body);margin-top:2px}
+.card{background:var(--block);border-radius:var(--r);padding:24px}
+.card+.card{margin-top:20px}
+.lbl{font-size:var(--t-12);font-weight:var(--w-s);color:var(--body);margin-bottom:6px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.big{font-size:var(--t-20);font-weight:var(--w-s);line-height:1.3}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+.miss{color:var(--body);font-style:normal}
+.miss::before{content:"Not recorded";font-weight:var(--w-s);color:var(--ink);box-shadow:inset 0 -1.5px 0 var(--ink)}
+.note{margin-top:20px;padding-top:20px;border-top:1px solid var(--line);font-size:var(--t-16);line-height:1.38}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow);font-size:var(--t-16)}
+.opt:hover{box-shadow:inset 0 0 0 1px var(--faint)}
+.opt.on{box-shadow:inset 0 0 0 1.5px var(--ink);font-weight:var(--w-s)}
+.opt .rd{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--faint);flex:none}
+.opt.on .rd{border:5px solid var(--ink)}
+.opt:disabled{opacity:.4;cursor:default}
+.opt.on:disabled{opacity:1}
+.opt small{display:block;font-size:var(--t-12);color:var(--body);font-weight:var(--w);margin-top:2px}
+.commit{width:100%;justify-content:center;margin-top:8px}
+.why-off{font-size:var(--t-12);color:var(--body);text-align:center;margin-top:8px;min-height:16px}
+.committed{background:#fff;border-radius:var(--r);box-shadow:inset 0 0 0 1.5px var(--ink);padding:14px 16px;display:flex;justify-content:space-between;gap:12px;font-size:var(--t-16);font-weight:var(--w-s)}
+.committed small{font-size:var(--t-14);color:var(--body);font-weight:var(--w)}
+.after{font-size:var(--t-14);color:var(--body);margin-top:12px}
+.locked{border:1px dashed var(--faint);border-radius:var(--r);background:#fff;min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--body)}
+.locked b{color:var(--ink);font-size:var(--t-16);font-weight:var(--w-s);margin:8px 0 6px}
+.locked p{max-width:360px}
+.thinking{background:#fff;border-radius:var(--r);padding:24px;min-height:420px}
+.tline{display:flex;gap:12px;align-items:center;padding:10px 0;color:var(--faint);transition:color .2s}
+.tline.on{color:var(--ink)}
+.tline.done{color:var(--body)}
+.tdot{width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;flex:none;display:grid;place-items:center;font-size:10px}
+.tline.on .tdot{border-color:var(--ink);border-top-color:transparent;animation:sp .8s linear infinite}
+.tline.done .tdot{background:var(--ink);border-color:var(--ink);color:#fff}
+@keyframes sp{to{transform:rotate(360deg)}}
+.aimark{width:36px;height:36px;border-radius:50%;background:var(--block-2);display:grid;place-items:center;flex:none;font-weight:var(--w-s)}
+.aihead{display:flex;gap:12px;align-items:flex-start}
+.conf{display:inline-flex;gap:6px;align-items:center;font-size:var(--t-12);font-weight:var(--w-s);margin-top:6px}
+.conf i{width:6px;height:6px;border-radius:50%;background:var(--faint);display:inline-block}
+.conf i.f{background:var(--ink)}
+.ev{margin-top:16px}
+.ev div{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:var(--t-14)}
+.ev div:last-child{border-bottom:0}
+.ev .m{width:18px;flex:none;font-weight:var(--w-s)}
+.ev .m.n{color:var(--faint)}
+.pol{background:#fff;border-radius:var(--r);padding:12px 16px;margin-top:12px;box-shadow:var(--shadow)}
+.pol b{font-weight:var(--w-s)}
+.cmp{border-radius:var(--r);padding:14px 16px;margin-top:12px;font-weight:var(--w-s)}
+.cmp.match{background:#fff;box-shadow:var(--shadow)}
+.cmp.diff{background:var(--block-2);box-shadow:inset 3px 0 0 var(--ink)}
+.cmp.none{background:#fff;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.cmp small{display:block;font-weight:var(--w);color:var(--body);margin-top:4px}
+.help{margin-top:12px}
+.help summary{cursor:pointer;color:var(--blue);font-weight:var(--w-s);list-style:none;font-size:var(--t-14)}
+.help summary::-webkit-details-marker{display:none}
+.help p{margin-top:8px;color:var(--ink);background:#fff;border-radius:var(--r);padding:12px 16px}
+.acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;justify-content:flex-end}
+.done-card{text-align:center;padding:48px 24px}
+.done-card .big{margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.stat{background:var(--block);border-radius:var(--r);padding:16px}
+.stat .v{font-size:var(--t-20);font-weight:var(--w-s)}
+.res{display:inline-flex;height:24px;align-items:center;padding:0 10px;border-radius:var(--pill);font-size:var(--t-12);font-weight:var(--w-s)}
+.res.match{box-shadow:inset 0 0 0 1px var(--faint)}
+.res.diff{background:var(--block-2)}
+.res.disputed{background:var(--ink);color:#fff}
+.res.none,.res.off{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.switch{display:flex;align-items:center;gap:10px;font-size:var(--t-14);font-weight:var(--w-s);cursor:pointer}
+.switch input{appearance:none;width:36px;height:20px;border-radius:var(--pill);background:var(--faint);position:relative;cursor:pointer;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.switch input:checked{background:var(--ink)}
+.switch input:checked::after{left:18px}
+
+@media(max-width:1100px){.rgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.list{grid-column:1/-1;position:static}}
+@media(max-width:860px){
+  .nav{border-radius:24px;flex-wrap:wrap;padding:10px 16px;margin:8px}
+  .search{width:100%;order:9}
+  .qgrid,.rgrid{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;padding:14px 20px}
+  .rail:not(.open) #filters{display:none}
+  .ftoggle::after{content:' ▾';color:var(--body)}
+  .rail.open .ftoggle::after{content:' ▴'}
+  .stats{grid-template-columns:1fr 1fr}
+  .wrap{padding:20px 12px 140px}
+  .bulk{flex-wrap:wrap;border-radius:24px;justify-content:center;padding:12px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<body>
+<nav class="nav" aria-label="Main">
+  <div class="brand">Collections Copilot<small>Agent: Shibil</small></div>
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-v="queue">Queue</button>
+    <button class="tab" data-v="review">Review<span class="ct" id="tabReviewCt"></span></button>
+    <button class="tab" data-v="log">Log<span class="ct" id="tabLogCt"></span></button>
+  </div>
+  <div class="spacer"></div>
+  <input class="search" id="search" type="search" placeholder="Search name or loan ID" aria-label="Search applicants">
+  <span class="demo">Concept · simulated data and model</span>
+</nav>
+
+<main class="wrap">
+
+<!-- QUEUE -->
+<section class="view" id="v-queue">
+  <div class="qgrid">
+    <aside class="rail" aria-label="Filters">
+      <h3><button class="ftoggle" id="fTog" aria-expanded="false">Filters<span id="fCount"></span></button><button id="clearF">Clear all</button></h3>
+      <div id="filters"></div>
+    </aside>
+    <div>
+      <div class="qhead">
+        <div><h1>Loan applicants</h1><p id="showing"></p></div>
+        <label class="sub">Sort <select class="sortsel" id="sort"><option value="prio">Priority</option><option value="dpd">Days past due</option><option value="amt">Outstanding</option></select></label>
+      </div>
+      <div class="hint" id="hint"><span><b>New here?</b> The most urgent accounts are at the top. Tick one or more, then press <b>Review with AI</b>, or click any row to review just that one.</span><button class="x" id="hintX">Got it</button></div>
+      <div class="selbanner" id="selBanner" hidden></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th class="cb"><input type="checkbox" id="pageAll" aria-label="Select all on this page"></th>
+            <th>Priority</th><th>Applicant</th><th>Status</th><th class="r">Outstanding</th><th class="r">DPD</th><th class="r">Calls</th><th>Last activity</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" hidden><b>No applicants match these filters</b>Clear a filter to see more.</div>
+      <div class="pager"><span id="pageInfo"></span><div class="pg"><button class="pill soft sm" id="prev">Previous</button><button class="pill soft sm" id="next">Next</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEW -->
+<section class="view" id="v-review" hidden>
+  <div class="steps" id="steps" aria-label="Progress"></div>
+  <div class="coach" id="coach">
+    <div><b>How AI review works</b>
+    <p>You make your call first. The AI's suggestion stays hidden until you commit, so it can't nudge you. Then you'll see where you and the AI agree, and where you don't. Disagreeing is fine; it's what the log is for.</p></div>
+    <button class="pill dark sm" id="coachX">Got it</button>
+  </div>
+  <div id="reviewBody"></div>
+</section>
+
+<!-- LOG -->
+<section class="view" id="v-log" hidden>
+  <div class="qhead"><div><h1>Calibration log</h1><p>Every committed decision this session, next to the AI's.</p></div>
+    <label class="switch"><input type="checkbox" id="outage"> Simulate model offline</label></div>
+  <div class="stats" id="stats"></div>
+  <div id="logBody"></div>
+</section>
+</main>
+
+<div class="bulk" id="bulk" role="region" aria-label="Bulk actions">
+  <div class="ct" id="bulkCt"></div>
+  <button class="pill white sm" id="bReview">Review with AI</button>
+  <button class="pill ghost sm" id="bMsg">Message</button>
+  <button class="pill ghost sm" id="bNotice">Notice</button>
+  <button class="pill ghost sm" id="bCall">Autodial</button>
+  <button class="x" id="bClear" aria-label="Clear selection">✕</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"><div class="m" id="toastM"></div><button class="pill white sm" id="toastU">Undo</button></div>
+<script>
+/* ───────── data: seeded so the demo is the same every load ───────── */
+const R=(s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(20260921);
+const pick=a=>a[Math.floor(R()*a.length)];
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const STATUS={new:'New',progress:'In progress',ptp:'Promise to pay',broken:'Broken promise',offer:'Settlement offered',settled:'Settled'};
+const ACTIONS=[
+  {k:'ext',  t:'30-day extension', h:'Give more time. For short, one-off delays.'},
+  {k:'emi',  t:'Convert to EMI',    h:'Spread what is owed into monthly instalments.'},
+  {k:'settle',t:'Single settlement',h:'Close the account for an agreed reduced amount.'},
+  {k:'esc',  t:'Escalate to lead',  h:'Hand the account to your team lead.'}];
+const POLICY={
+  '3.3':{t:'Extensions',            r:'Up to 30 days past due with a promise kept, or a documented one-off delay.',a:'ext'},
+  '4.2':{t:'Hardship restructure',  r:'Documented hardship, 30 to 90 days past due, no active settlement.',a:'emi'},
+  '4.4':{t:'One-time settlement',   r:'Two or more broken promises and at least 45 days past due.',a:'settle'},
+  '5.1':{t:'Escalation',            r:'Beyond 90 days past due, the account moves to the lead.',a:'esc'}};
+const PRODUCTS=['Personal Loan','Revolving Credit','Business Overdraft','Two-wheeler Loan','Consumer Durable'];
+const NAMES=['Yusuf Naidu','Imran Verma','Manoj Yadav','Abhishek Menon','Gayatri Mehta','Divya Chopra','Aditya Rao','Priya Mehta','Harish Verma','Divya Bhat','Imran Sinha','Farhan Verma','Kavya Pillai','Rohit Nair','Sneha Kulkarni','Arjun Das','Nisha Kapoor','Vikram Joshi','Lakshmi Iyer','Sameer Khan','Pooja Reddy','Rahul Bose','Ananya Rao','Karthik Menon','Fatima Sheikh','Deepak Gupta','Ritu Singh','Naveen Kumar','Swati Desai','Irfan Qureshi','Meghna Paul','Tarun Bhatia','Asha Thomas','Gopal Krishnan','Neha Saxena','Salman Ali','Bhavna Jain','Ravi Shankar','Zoya Mirza','Ajay Patil','Shalini Rao','Mohit Arora','Jaya Menon','Kunal Shah','Rekha Pillai','Siddharth Roy','Nazia Hussain','Pranav Kulkarni','Tanvi Joshi','Vinod Nair','Aarti Sharma','Hari Prasad','Mala Iyer','Sunil Dutt'];
+
+function mk(o){return Object.assign({act:null,settle:false},o)}
+const DATA=[
+  mk({name:'Priya Venkataraman',product:'Revolving Credit',amt:54200,dpd:47,status:'progress',calls:4,hardship:true,
+      note:'Customer cited job loss since March. Requesting EMI restructure. Follow-up scheduled for Friday.',
+      pay:{amt:6200,on:'12 May'},prom:{kept:2,broken:1},last:['Call','Connected','2 min ago']}),
+  mk({name:'Suresh Iyer',product:'Personal Loan',amt:31400,dpd:38,status:'new',calls:0,hardship:false,note:null,pay:null,prom:null,last:['SMS','Delivered','3 d ago']}),
+  mk({name:'Venkatasubramaniam Krishnamurthy',product:'Business Overdraft',amt:324800,dpd:104,status:'broken',calls:9,hardship:false,
+      note:'Legal counsel engaged. No response to last three calls.',pay:{amt:20000,on:'2 Feb'},prom:{kept:0,broken:3},last:['Email','Opened','1 d ago']}),
+  mk({name:'Rajesh Sharma',product:'Two-wheeler Loan',amt:18500,dpd:12,status:'progress',calls:1,hardship:false,
+      note:'Salary delayed this month. Will pay by the 5th.',pay:{amt:4100,on:'4 Aug'},prom:{kept:3,broken:0},last:['WhatsApp','Read','5 h ago']}),
+  mk({name:'Meera Shetty',product:'Personal Loan',amt:87300,dpd:61,status:'broken',calls:6,hardship:false,
+      note:'Promised twice to pay by month end. Asked about closing the account.',pay:{amt:9000,on:'20 Jun'},prom:{kept:1,broken:3},last:['Call','Busy','1 h ago']}),
+  mk({name:'Anand Rao',product:'Consumer Durable',amt:21900,dpd:22,status:'ptp',calls:2,hardship:false,
+      note:'Promised full payment today.',pay:{amt:3000,on:'30 Jul'},prom:{kept:2,broken:0},ptpDue:0,last:['Call','Connected','20 min ago']})];
+DATA[2].brokeDays=21; DATA[4].brokeDays=3;
+
+const CH={Call:['Connected','No answer','Busy'],WhatsApp:['Read','Delivered'],SMS:['Delivered'],Email:['Opened','Sent']};
+const NOTES=['Asked for a call back next week.','Disputes the late fee.','Says payment was made; no record found.','Requested a statement.','Travelling, will pay on return.','Income reduced after a medical expense.'];
+for(const n of NAMES){
+  // real books skew early: most accounts are in the first bucket, few reach NPA
+  const dpd=1+Math.floor(Math.pow(R(),2.5)*150);
+  let status=dpd>95?pick(['broken','offer','progress']):dpd>45?pick(['progress','broken','ptp','offer','new']):pick(['new','progress','ptp','new','settled']);
+  const thin=R()<.1, partial=!thin&&R()<.12;
+  const ch=pick(Object.keys(CH));
+  const c=mk({name:n,product:pick(PRODUCTS),amt:Math.round((8000+R()*380000)/100)*100,dpd,status,calls:Math.floor(R()*9),
+    hardship:R()<.16,
+    note:thin?null:pick(NOTES),
+    pay:thin?null:{amt:Math.round((1500+R()*20000)/100)*100,on:pick(['2 Jun','14 Jun','30 Jun','8 Jul','22 Jul','6 Aug'])},
+    prom:thin?null:{kept:Math.floor(R()*4),broken:Math.floor(R()*4)},
+    last:[ch,pick(CH[ch]),pick(['2 min ago','1 h ago','5 h ago','1 d ago','3 d ago','1 w ago'])]});
+  if(status==='settled'){c.dpd=0}
+  if(status==='ptp')c.ptpDue=pick([0,3,6,10]);
+  if(status==='broken')c.brokeDays=pick([3,12,21,30,45,60]);
+  if(partial){const f=pick(['note','pay','prom']);c[f]=null}
+  DATA.push(c);
+}
+DATA.forEach((c,i)=>{c.id='LN-2024-'+String(103619+i*1733).padStart(6,'0');c.i=i});
+const byId=id=>DATA.find(c=>c.id===id);
+
+/* ───────── simulated model: rules, stated so its reasoning is checkable ───────── */
+function assess(c){
+  const missing=[];
+  if(!c.note)missing.push('Last contact note');
+  if(!c.pay)missing.push('Payment history');
+  if(!c.prom)missing.push('Promise history');
+  if(missing.length===3)return{rec:null,missing};
+  let p,why;
+  if(c.dpd>90){p='5.1';why=[[`${c.dpd} days past due, which is over 90`,true]]}
+  else if(c.hardship&&c.dpd>=30&&!c.settle){p='4.2';why=[['Hardship is documented',true],[`${c.dpd} days past due, within 30 to 90`,true],['No settlement is active',true]]}
+  else if(c.prom&&c.prom.broken>=2&&c.dpd>=45){p='4.4';why=[[`${c.prom.broken} promises broken`,true],[`${c.dpd} days past due, 45 or more`,true]]}
+  else if(c.dpd<=30){p='3.3';why=[[`${c.dpd} days past due, 30 or fewer`,true],[c.prom&&c.prom.kept?`${c.prom.kept} promises kept`:'No promise kept on record',!!(c.prom&&c.prom.kept)]]}
+  else{p='3.3';why=[[`${c.dpd} days past due, beyond the usual extension window`,false],['No hardship documented',true],['No pattern of broken promises',true]]}
+  let conf='High';
+  if(p==='3.3'&&c.dpd>30)conf='Moderate';
+  if(missing.length)conf='Low';
+  return{rec:POLICY[p].a,p,why,missing,conf};
+}
+
+/* ───────── priority: RBI's overdue buckets decide it, not workflow status ─────────
+   SMA-0 1–30 · SMA-1 31–60 · SMA-2 61–90 · NPA over 90.
+   The most urgent account is the one about to cross into NPA, not the one already there. */
+const bucket=c=>c.status==='settled'?'':c.dpd>90?'NPA':c.dpd>60?'SMA-2':c.dpd>30?'SMA-1':'SMA-0';
+function priority(c){
+  if(c.status==='settled')return{k:'none',rank:3,why:''};
+  // already NPA: the decision belongs to the lead, whatever happened this week
+  if(c.dpd>90)return{k:'week',rank:1,why:'NPA · route to lead'};
+  if(c.ptpDue===0)return{k:'act',rank:0,why:'Promise due today'};
+  if(c.brokeDays!=null&&c.brokeDays<=7)return{k:'act',rank:0,why:`Promise broke ${c.brokeDays} d ago`};
+  // NPA begins after day 90, so day 90 is one day away
+  if(c.dpd>=81)return{k:'act',rank:0,why:c.dpd===90?'Becomes NPA tomorrow':`${91-c.dpd} d until NPA`};
+  if(c.dpd>60)return{k:'week',rank:1,why:`SMA-2 · ${91-c.dpd} d until NPA`};
+  if(c.dpd>30&&c.status==='broken')return{k:'week',rank:1,why:'SMA-1 with a broken promise'};
+  return{k:'mon',rank:2,why:''};
+}
+const PL={act:'Act today',week:'This week',mon:'Monitor'};
+const prioPill=c=>{const p=priority(c);if(p.k==='none')return'<span class="sub">–</span>';
+  return `<span class="prio p-${p.k}">${PL[p.k]}</span>${p.why?`<div class="why">${p.why}</div>`:''}`};
+const statusSub=c=>c.status==='ptp'&&c.ptpDue!=null?(c.ptpDue===0?'due today':`due in ${c.ptpDue} d`)
+  :c.status==='broken'&&c.brokeDays!=null?`broke ${c.brokeDays} d ago`:'';
+
+/* ───────── state ───────── */
+const S={view:'queue',q:'',page:0,per:20,sel:new Set(),acrossPages:false,
+  f:{prio:new Set(),status:new Set(),dpd:new Set(),flag:new Set()},sort:'prio',
+  session:[],idx:0,cases:{},log:[],outage:false,hint:true,coach:true,toastT:null,undo:null};
+const PRB=[['act','Act today',c=>priority(c).k==='act'],['week','This week',c=>priority(c).k==='week'],['mon','Monitor',c=>priority(c).k==='mon']];
+const DPDB=[['0-30','0 to 30 days',c=>c.dpd<=30],['31-60','31 to 60 days',c=>c.dpd>30&&c.dpd<=60],['61-90','61 to 90 days',c=>c.dpd>60&&c.dpd<=90],['90+','Over 90 days',c=>c.dpd>90]];
+const FLAGS=[['hard','Hardship',c=>c.hardship],['thin','Thin file',c=>!c.note&&!c.pay&&!c.prom]];
+const $=id=>document.getElementById(id);
+const aname=k=>ACTIONS.find(a=>a.k===k).t;
+/* ───────── queue ───────── */
+function matches(c,skip){
+  if(S.q){const q=S.q.toLowerCase();if(!c.name.toLowerCase().includes(q)&&!c.id.toLowerCase().includes(q))return false}
+  if(skip!=='prio'&&S.f.prio.size&&!S.f.prio.has(priority(c).k))return false;
+  if(skip!=='status'&&S.f.status.size&&!S.f.status.has(c.status))return false;
+  if(skip!=='dpd'&&S.f.dpd.size&&!DPDB.some(([k,,fn])=>S.f.dpd.has(k)&&fn(c)))return false;
+  if(skip!=='flag'&&S.f.flag.size&&!FLAGS.some(([k,,fn])=>S.f.flag.has(k)&&fn(c)))return false;
+  return true;
+}
+const SORTS={prio:(a,b)=>priority(a).rank-priority(b).rank||b.dpd-a.dpd,
+  dpd:(a,b)=>b.dpd-a.dpd, amt:(a,b)=>b.amt-a.amt};
+const filtered=()=>DATA.filter(c=>matches(c)).sort(SORTS[S.sort]);
+
+function renderFilters(){
+  const grp=(key,title,opts)=>`<div class="fgroup"><div class="k">${title}</div>${opts.map(([k,label,fn])=>{
+      const n=DATA.filter(c=>matches(c,key)&&fn(c)).length;
+      return `<label class="frow"><input type="checkbox" data-g="${key}" data-k="${k}" ${S.f[key].has(k)?'checked':''}>${label}<span class="c num">${n}</span></label>`}).join('')}</div>`;
+  $('filters').innerHTML=
+    grp('prio','Priority',PRB)+
+    grp('status','Status',Object.entries(STATUS).map(([k,l])=>[k,l,c=>c.status===k]))+
+    grp('dpd','Days past due',DPDB)+grp('flag','Flags',FLAGS);
+  const n=S.f.prio.size+S.f.status.size+S.f.dpd.size+S.f.flag.size;
+  $('fCount').textContent=n?`${n} on`:'';
+}
+
+function statusBadge(s){return `<span class="badge b-${s}">${STATUS[s]}</span>`}
+
+function renderQueue(){
+  renderFilters();
+  const list=filtered(), pages=Math.max(1,Math.ceil(list.length/S.per));
+  if(S.page>=pages)S.page=pages-1;
+  const view=list.slice(S.page*S.per,(S.page+1)*S.per);
+  $('showing').textContent=list.length===DATA.length?`${DATA.length} applicants`:`${list.length} of ${DATA.length} applicants match`;
+  $('rows').innerHTML=view.map(c=>{
+    const thin=!c.note&&!c.pay&&!c.prom;
+    return `<tr class="row ${S.sel.has(c.id)?'sel':''}" data-id="${c.id}">
+      <td class="cb"><input type="checkbox" data-cb="${c.id}" ${S.sel.has(c.id)?'checked':''} aria-label="Select ${esc(c.name)}"></td>
+      <td>${prioPill(c)}</td>
+      <td><div class="nm">${esc(c.name)}${c.hardship?'<span class="flag">Hardship</span>':''}${thin?'<span class="flag thin">Thin file</span>':''}</div><div class="sub">${c.product} · <span class="num">${c.id}</span></div></td>
+      <td><span class="${c.status==='settled'?'sub':'stxt'}">${STATUS[c.status]}</span>${statusSub(c)?`<div class="why">${statusSub(c)}</div>`:''}</td>
+      <td class="r num">${c.status==='settled'?'<span class="sub">Settled</span>':inr(c.amt)}</td>
+      <td class="r num ${c.dpd>90?'dpd-hi':''}">${c.status==='settled'?'<span class="sub">–</span>':c.dpd+`<div class="why">${bucket(c)}</div>`}</td>
+      <td class="r num">${c.calls}</td>
+      <td class="la">${c.act?`<b>${esc(c.act)}</b>`:`${c.last[0]} · ${c.last[1]}`}<div class="sub">${c.act?'Just now':c.last[2]}</div></td></tr>`}).join('');
+  $('empty').hidden=list.length>0;
+  const from=list.length?S.page*S.per+1:0,to=Math.min(list.length,(S.page+1)*S.per);
+  $('pageInfo').textContent=`Showing ${from} to ${to} of ${list.length}`;
+  $('prev').disabled=S.page===0; $('next').disabled=S.page>=pages-1;
+  const onPage=view.map(c=>c.id), picked=onPage.filter(id=>S.sel.has(id)).length;
+  $('pageAll').checked=onPage.length>0&&picked===onPage.length;
+  $('pageAll').indeterminate=picked>0&&picked<onPage.length;
+  // Gmail pattern: page selection offers to widen, never widens by itself
+  const b=$('selBanner');
+  if(S.acrossPages){b.hidden=false;b.innerHTML=`All <b>&nbsp;${S.sel.size}&nbsp;</b> matching applicants are selected. <button class="linkbtn" id="selClear">Clear selection</button>`}
+  else if(onPage.length&&picked===onPage.length&&list.length>onPage.length){b.hidden=false;b.innerHTML=`All ${onPage.length} on this page are selected. <button class="linkbtn" id="selWide">Select all ${list.length} matching</button>`}
+  else b.hidden=true;
+  $('hint').hidden=!S.hint;
+  renderBulk();
+}
+
+function renderBulk(){
+  const n=S.sel.size;
+  $('bulk').classList.toggle('on',n>0&&S.view==='queue'&&!$('toast').classList.contains('on'));
+  $('bulkCt').innerHTML=`${n} selected<small>${S.acrossPages?'across all pages':'on this page'}</small>`;
+  const h=new Date().getHours(), open=h>=8&&h<19;
+  $('bCall').disabled=!open; $('bCall').textContent=open?'Autodial':'Calls open 8:00 am';
+  $('bCall').title=open?'':'Recovery calls are allowed between 8 am and 7 pm';
+}
+
+function clearSel(){S.sel.clear();S.acrossPages=false}
+
+/* ───────── toast with undo ───────── */
+function toast(msg,sub,undo){
+  S.undo=undo||null;
+  $('toastM').innerHTML=esc(msg)+(sub?`<small>${esc(sub)}</small>`:'');
+  $('toastU').hidden=!undo;
+  $('toast').classList.add('on'); renderBulk();
+  clearTimeout(S.toastT); S.toastT=setTimeout(()=>{$('toast').classList.remove('on');renderBulk()},5000);
+}
+$('toastU').onclick=()=>{if(S.undo){S.undo();S.undo=null} $('toast').classList.remove('on'); render()};
+
+/* bulk actions change what the table shows, so undo has something real to undo */
+function stamp(ids,label){
+  const before=ids.map(id=>[id,byId(id).act]);
+  ids.forEach(id=>byId(id).act=label);
+  return ()=>before.forEach(([id,a])=>byId(id).act=a);
+}
+$('bMsg').onclick=()=>{
+  const ids=[...S.sel]; const u=stamp(ids,'WhatsApp · Queued'); clearSel(); renderQueue();
+  toast(`Message queued to ${ids.length}`,null,()=>{u()});
+};
+$('bNotice').onclick=()=>{
+  const ids=[...S.sel];
+  const held=ids.filter(id=>['ptp','settled'].includes(byId(id).status));
+  const send=ids.filter(id=>!held.includes(id));
+  if(!send.length){toast('No notices sent',`All ${held.length} selected are held: active promise to pay or already settled.`);return}
+  const u=stamp(send,'Notice · Queued'); clearSel(); renderQueue();
+  toast(`Notice queued to ${send.length}`,held.length?`${held.length} held: active promise to pay or already settled`:null,u);
+};
+$('bCall').onclick=()=>{
+  const ids=[...S.sel]; const u=stamp(ids,'Autodial · Queued'); clearSel(); renderQueue();
+  toast(`Autodial queued for ${ids.length}`,null,u);
+};
+$('bClear').onclick=()=>{clearSel();renderQueue()};
+$('bReview').onclick=()=>{
+  const order=filtered().map(c=>c.id).filter(id=>S.sel.has(id));
+  startSession(order); clearSel();
+};
+/* ───────── review ───────── */
+function startSession(ids){
+  if(!ids.length)return;
+  S.session=ids; S.idx=0; S.hint=false;
+  ids.forEach(id=>{ if(!S.cases[id]||S.cases[id].stage!=='result') S.cases[id]={stage:'decide',pick:null} });
+  go('review');
+}
+const cur=()=>S.session[S.idx];
+const st=id=>S.cases[id]||(S.cases[id]={stage:'decide',pick:null});
+
+function renderSteps(){
+  const id=cur(); if(!id){$('steps').innerHTML='';return}
+  const s=st(id);
+  const now=s.stage==='result'||s.stage==='thinking'?4:s.pick?3:2;
+  const L=['Read the case','Choose an action','Commit','Compare with AI'];
+  $('steps').innerHTML=L.map((t,i)=>{const n=i+1,cls=n<now||(n===4&&s.stage==='result')?'done':n===now?'now':'';
+    return `<div class="step ${cls}"><span class="n">${cls==='done'?'✓':n}</span>${t}</div>`}).join('');
+}
+
+function factsHTML(c){
+  const v=(x,f)=>x?f(x):'<i class="miss"></i>';
+  return `<div class="card">
+    <div class="head"><div><div class="lbl">Applicant</div><div class="big">${esc(c.name)}</div><div class="sub">${c.id} · ${c.product}</div></div>
+      <div style="text-align:right">${prioPill(c)}${c.hardship?'<div style="margin-top:6px"><span class="flag">Hardship</span></div>':''}</div></div>
+    <div class="facts">
+      <div><div class="lbl">Outstanding</div><div class="big num">${inr(c.amt)}</div></div>
+      <div><div class="lbl">Days past due</div><div class="big num">${c.dpd} <span class="sub">${bucket(c)}</span></div></div>
+      <div><div class="lbl">Last payment</div>${v(c.pay,p=>`<span class="num">${inr(p.amt)}</span> · ${p.on}`)}</div>
+      <div><div class="lbl">Promises to pay</div>${v(c.prom,p=>`${p.kept} kept · ${p.broken} broken`)}</div>
+    </div>
+    <div class="note"><div class="lbl">Last contact</div>${c.note?esc(c.note):'<i class="miss"></i>'}</div>
+  </div>`;
+}
+
+function decisionHTML(id){
+  const s=st(id);
+  if(s.stage!=='decide'){
+    return `<div class="card"><div class="lbl">Your decision</div>
+      <div class="committed"><span>${aname(s.pick)}</span><small>Committed · ${s.at}</small></div>
+      <p class="after">Locked once committed, so the comparison stays honest. If the AI differs, you can dispute it.</p></div>`;
+  }
+  return `<div class="card"><div class="lbl">Your decision</div>
+    ${ACTIONS.map(a=>`<button class="opt ${s.pick===a.k?'on':''}" data-pick="${a.k}"><span class="rd"></span><span>${a.t}<small>${a.h}</small></span></button>`).join('')}
+    <button class="pill dark commit" id="commitBtn" ${s.pick?'':'disabled'}>Commit decision</button>
+    <p class="why-off">${s.pick?'The AI suggestion appears after you commit.':'Choose an action to continue.'}</p></div>`;
+}
+
+function aiHTML(id){
+  const s=st(id), c=byId(id);
+  if(s.stage==='decide') return `<div class="locked" aria-live="polite">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <b>AI suggestion is hidden</b><p>Make and commit your own call first. Seeing the AI's answer before you decide tends to pull you toward it.</p></div>`;
+  if(s.stage==='thinking') return `<div class="thinking" aria-live="polite"><div class="lbl">Checking model</div>
+      ${['Reading the case file','Checking recovery policy','Comparing with your call'].map((t,i)=>`<div class="tline ${i<s.tick?'done':i===s.tick?'on':''}"><span class="tdot">${i<s.tick?'✓':''}</span>${t}</div>`).join('')}</div>`;
+
+  const r=s.result, mine=aname(s.pick);
+  const next=S.idx<S.session.length-1?'Next case':'Finish review';
+  if(r.off) return `<div class="card" aria-live="polite">
+      <div class="aihead"><span class="aimark">AI</span><div><div class="lbl">AI suggestion</div><div class="big">Unavailable</div></div></div>
+      <div class="cmp none">The model couldn't be reached.<small>Your decision, ${mine}, stands and is already logged. Use the policy sections below.</small></div>
+      ${Object.entries(POLICY).map(([k,p])=>`<div class="pol"><b>§${k} ${p.t}</b><div class="sub">${p.r}</div></div>`).join('')}
+      <div class="acts"><button class="pill soft" data-do="flag">Flag for team lead</button><button class="pill dark" data-do="next">${next}</button></div></div>`;
+  if(!r.rec) return `<div class="card" aria-live="polite">
+      <div class="aihead"><span class="aimark">AI</span><div><div class="lbl">AI suggestion</div><div class="big">No recommendation</div></div></div>
+      <div class="cmp none">This case file is too thin to judge.<small>Rather than guess, the AI returns nothing. Your decision, ${mine}, stands.</small></div>
+      <div class="ev">${r.missing.map(m=>`<div><span class="m n">✕</span>${m}: not recorded</div>`).join('')}</div>
+      <details class="help"><summary>Why doesn't it just guess?</summary><p>A confident answer on missing data looks exactly like a confident answer on good data. If it guessed here, you'd have no way to tell its good suggestions from its bad ones.</p></details>
+      <div class="acts"><button class="pill soft" data-do="flag">Flag for team lead</button><button class="pill dark" data-do="next">${next}</button></div></div>`;
+
+  const agree=r.rec===s.pick, dots=r.conf==='High'?3:r.conf==='Moderate'?2:1, pol=POLICY[r.p];
+  return `<div class="card" aria-live="polite">
+    <div class="aihead"><span class="aimark">AI</span><div><div class="lbl">AI suggestion</div><div class="big">${aname(r.rec)}</div>
+      <div class="conf">${[1,2,3].map(n=>`<i class="${n<=dots?'f':''}"></i>`).join('')} ${r.conf} confidence</div></div></div>
+    <div class="lbl" style="margin-top:20px">Why</div>
+    <div class="ev">${r.why.map(([t,ok])=>`<div><span class="m ${ok?'':'n'}">${ok?'✓':'✕'}</span>${t}</div>`).join('')}
+      ${r.missing.map(m=>`<div><span class="m n">?</span>${m} not recorded</div>`).join('')}</div>
+    <div class="pol"><b>§${r.p} ${pol.t}</b><div class="sub">${pol.r}</div></div>
+    ${s.disputed?`<div class="cmp diff">Disputed · sent to lead review<small>Both calls are stored. Your lead will ask for your reasoning.</small></div>`
+      :agree?`<div class="cmp match">You and the AI agree<small>Logged. It still goes through the normal policy check.</small></div>`
+      :`<div class="cmp diff">You chose ${mine}. The AI suggests ${aname(r.rec)}.<small>It applied §${r.p}: ${pol.r} Logged to your calibration record.</small></div>`}
+    <details class="help"><summary>What does ${r.conf.toLowerCase()} confidence mean?</summary><p>${
+      r.conf==='High'?'Every condition in the policy rule is met by recorded facts.'
+      :r.conf==='Moderate'?'The case doesn\'t cleanly fit any one rule, so the AI picked the closest. Worth a second look.'
+      :'Some facts are missing, so the AI is working from part of the picture. Treat it as a weak signal.'}${
+      agree?'':' Disagreeing is normal. You may know something the file doesn\'t.'}</p></details>
+    <div class="acts">${!agree&&!s.disputed?'<button class="pill soft" data-do="dispute">Dispute AI reasoning</button>':''}
+      <button class="pill dark" data-do="next">${agree||s.disputed?next:'Keep my call · '+next.toLowerCase()}</button></div></div>`;
+}
+
+function renderReview(){
+  const body=$('reviewBody');
+  $('coach').hidden=!S.coach;
+  renderSteps();
+  if(!S.session.length){
+    body.innerHTML=`<div class="card done-card"><div class="big">Nothing to review yet</div>
+      <p class="sub" style="margin-bottom:20px">Go to the queue, tick applicants and press Review with AI. Or try one first.</p>
+      <button class="pill dark" id="sample">Try a sample case</button> <button class="pill soft" data-go="queue">Open the queue</button></div>`;
+    return;
+  }
+  if(S.idx>=S.session.length){
+    const done=S.session.map(id=>S.log.find(l=>l.id===id)).filter(Boolean);
+    const m=done.filter(l=>l.res==='match').length, d=done.filter(l=>l.res==='diff'||l.res==='disputed').length;
+    body.innerHTML=`<div class="card done-card"><div class="big">Review complete</div>
+      <p class="sub" style="margin-bottom:20px">${done.length} reviewed · ${m} agreed with the AI · ${d} differed</p>
+      <button class="pill dark" data-go="log">See the log</button> <button class="pill soft" data-go="queue">Back to the queue</button></div>`;
+    $('steps').innerHTML='';
+    return;
+  }
+  const id=cur(), c=byId(id);
+  body.innerHTML=`<div class="rgrid">
+    <aside class="list"><h3>This review <span>${S.idx+1} of ${S.session.length}</span></h3>
+      ${S.session.map((sid,i)=>{const x=byId(sid),l=S.log.find(l=>l.id===sid);
+        return `<button class="li ${i===S.idx?'on':''}" data-jump="${i}"><div class="nm"><span>${esc(x.name)}</span><span class="num sub">${inr(x.amt)}</span></div>
+        <div class="st">${l?{match:'Agreed',diff:'Differed',disputed:'Disputed',none:'No suggestion',off:'Model offline'}[l.res]:(priority(x).k==='mon'||priority(x).k==='none'?x.dpd+' days overdue':PL[priority(x).k]+' · '+priority(x).why)}</div></button>`}).join('')}
+    </aside>
+    <div>${factsHTML(c)}${decisionHTML(id)}</div>
+    <div>${aiHTML(id)}</div></div>`;
+}
+
+function commit(){
+  const id=cur(), s=st(id); if(!s.pick)return;
+  const t=new Date(); s.at=t.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});
+  s.stage='thinking'; s.tick=0; S.coach=false; renderReview();
+  const iv=setInterval(()=>{
+    s.tick++;
+    if(s.tick>=3){clearInterval(iv); finish(id)}
+    if(cur()===id&&S.view==='review')renderReview();
+  },450);
+}
+function finish(id){
+  const s=st(id), c=byId(id);
+  s.result=S.outage?{off:true}:assess(c); s.stage='result';
+  const r=s.result;
+  const res=r.off?'off':!r.rec?'none':r.rec===s.pick?'match':'diff';
+  S.log=S.log.filter(l=>l.id!==id);
+  S.log.push({id,name:c.name,mine:s.pick,ai:r.off?null:r.rec,res,at:s.at,p:r.p});
+  if(cur()===id&&S.view==='review')renderReview();
+  renderTabs();
+}
+
+/* ───────── log ───────── */
+function renderLog(){
+  $('outage').checked=S.outage;
+  const n=S.log.length, m=S.log.filter(l=>l.res==='match').length,
+        d=S.log.filter(l=>l.res==='diff'||l.res==='disputed').length,
+        x=S.log.filter(l=>l.res==='none'||l.res==='off').length;
+  $('stats').innerHTML=[['Reviewed',n],['Agreed with AI',m],['Differed',d],['No suggestion',x]]
+    .map(([k,v])=>`<div class="stat"><div class="lbl">${k}</div><div class="v num">${v}</div></div>`).join('');
+  if(!n){$('logBody').innerHTML=`<div class="card done-card"><div class="big">No decisions yet</div><p class="sub" style="margin-bottom:20px">Committed decisions appear here next to the AI's.</p><button class="pill dark" data-go="queue">Open the queue</button></div>`;return}
+  const L={match:'Agreed',diff:'Differed',disputed:'Disputed',none:'No suggestion',off:'Model offline'};
+  $('logBody').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Your call</th><th>AI suggestion</th><th>Result</th><th class="r">Committed</th></tr></thead><tbody>
+    ${S.log.slice().reverse().map(l=>`<tr><td class="nm">${esc(l.name)}<div class="sub">${l.id}</div></td><td>${aname(l.mine)}</td>
+      <td>${l.ai?aname(l.ai)+`<div class="sub">§${l.p}</div>`:'<span class="sub">None</span>'}</td>
+      <td><span class="res ${l.res}">${L[l.res]}</span></td><td class="r num sub">${l.at}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ───────── shell ───────── */
+function renderTabs(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===S.view));
+  const left=S.session.filter(id=>!S.log.find(l=>l.id===id)).length;
+  $('tabReviewCt').textContent=left?left:'';
+  $('tabLogCt').textContent=S.log.length?S.log.length:'';
+}
+function go(v){S.view=v;render();window.scrollTo({top:0})}
+function render(){
+  ['queue','review','log'].forEach(v=>$('v-'+v).hidden=S.view!==v);
+  renderTabs();
+  if(S.view==='queue')renderQueue(); if(S.view==='review')renderReview(); if(S.view==='log')renderLog();
+  renderBulk();
+}
+
+/* ───────── events ───────── */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  const tab=t.closest('.tab'); if(tab){go(tab.dataset.v);return}
+  const g=t.closest('[data-go]'); if(g){go(g.dataset.go);return}
+  if(t.closest('#sample')){startSession([DATA[0].id]);return}
+  if(t.id==='hintX'){S.hint=false;renderQueue();return}
+  if(t.id==='coachX'){S.coach=false;renderReview();return}
+  if(t.closest('#fTog')){const r=document.querySelector('.rail');r.classList.toggle('open');$('fTog').setAttribute('aria-expanded',r.classList.contains('open'));return}
+  if(t.id==='clearF'){S.f.prio.clear();S.f.status.clear();S.f.dpd.clear();S.f.flag.clear();S.page=0;clearSel();renderQueue();return}
+  if(t.id==='selWide'){filtered().forEach(c=>S.sel.add(c.id));S.acrossPages=true;renderQueue();return}
+  if(t.id==='selClear'){clearSel();renderQueue();return}
+  if(t.id==='prev'){S.page--;renderQueue();return}
+  if(t.id==='next'){S.page++;renderQueue();return}
+  const cb=t.closest('[data-cb]'); if(cb){return}
+  const row=t.closest('tr.row'); if(row&&!t.closest('.cb')){startSession([row.dataset.id]);return}
+  const p=t.closest('[data-pick]'); if(p){st(cur()).pick=p.dataset.pick;renderReview();return}
+  if(t.id==='commitBtn'){commit();return}
+  const j=t.closest('[data-jump]'); if(j){S.idx=+j.dataset.jump;renderReview();return}
+  const d=t.closest('[data-do]'); if(d){
+    const id=cur(),s=st(id),k=d.dataset.do;
+    if(k==='dispute'){s.disputed=true;const l=S.log.find(l=>l.id===id);if(l)l.res='disputed';renderReview();toast('Sent to lead review','Both calls are stored.')}
+    if(k==='flag'){toast('Flagged for team lead')}
+    if(k==='next'){S.idx++;renderReview();renderTabs()}
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.cb){const id=t.dataset.cb;t.checked?S.sel.add(id):S.sel.delete(id);S.acrossPages=false;renderQueue();return}
+  if(t.id==='pageAll'){
+    const list=filtered().slice(S.page*S.per,(S.page+1)*S.per).map(c=>c.id);
+    if(t.checked)list.forEach(id=>S.sel.add(id)); else {list.forEach(id=>S.sel.delete(id))}
+    S.acrossPages=false; renderQueue(); return}
+  if(t.dataset.g){const set=S.f[t.dataset.g];t.checked?set.add(t.dataset.k):set.delete(t.dataset.k);S.page=0;clearSel();renderQueue();return}
+  if(t.id==='sort'){S.sort=t.value;S.page=0;clearSel();renderQueue();return}
+  if(t.id==='outage'){S.outage=t.checked;toast(S.outage?'Model is now offline':'Model is back online',S.outage?'The next commit shows the offline state.':null)}
+});
+let qT; $('search').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{S.q=e.target.value.trim();S.page=0;clearSel();if(S.view!=='queue')go('queue');else renderQueue()},150)});
+
+render();
+</script>
+</body>
+</html>
